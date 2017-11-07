@@ -1,6 +1,8 @@
 import fdb
 from flask import Flask
 from flask import request
+from flask import render_template
+import pprint
 
 app = Flask(__name__)
 
@@ -20,4 +22,4 @@ def hello():
 
     for r in cur.fetchall():
         s += str(r) + '<br>'
-    return s
+    return render_template('list.html', entries=map(lambda x: str(x), cur.fetchall()))
