@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block body %}
+  {% with options=tables %}
+    {% include "select.html" %}
+  {% endwith %}
   <div class=entries>
-    {{ entries }}
-  {% for entry in entries %}
-    1
+   {% for entry in entries %}
     {{ entry }}
     <br>
   {% endfor %}
-  2
-  </dib>
+  </div>
 {% endblock %}
