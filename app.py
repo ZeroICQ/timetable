@@ -1,8 +1,8 @@
 import fdb
+import flask
 from flask import Flask
 from flask import request
 from flask import render_template
-from flask import g
 
 
 app = Flask(__name__)
@@ -12,22 +12,22 @@ def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
     """
-    if not hasattr(g, 'fb_db'):
-        g.fb_db = fdb.connect(
+    if not hasattr(flask.g, 'fb_db'):
+        flask.g.fb_db = fdb.connect(
             dsn='db/TIMETABLE.FDB',
             user='SYSDBA',
             password='masterkey',
             connection_class=fdb.ConnectionWithSchema,
             charset='UTF8'
         )
-    return g.fb_db
+    return flask.g.fb_db
 
 
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
-    if hasattr(g, 'fb_db'):
-        g.fb_db.close()
+    if hasattr(flask.g, 'fb_db'):
+        flask.g.fb_db.close()
 
 
 def get_tables():
