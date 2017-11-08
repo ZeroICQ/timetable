@@ -36,6 +36,7 @@ def get_tables():
             'GROUPS',
             'LESSONS',
             'LESSON_TYPES',
+            'SCHED_ITEMS',
             'SUBJECTS',
             'SUBJECT_GROUP',
             'SUBJECT_TEACHER',
