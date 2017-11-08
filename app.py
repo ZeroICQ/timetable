@@ -32,17 +32,17 @@ def close_db(error):
 
 def get_tables():
     tables = (
-            'AUDIENCES',
-            'GROUPS',
-            'LESSONS',
-            'LESSON_TYPES',
-            'SCHED_ITEMS',
-            'SUBJECTS',
-            'SUBJECT_GROUP',
-            'SUBJECT_TEACHER',
-            'TEACHERS',
-            'WEEKDAYS',
-            )
+        'AUDIENCES',
+        'GROUPS',
+        'LESSONS',
+        'LESSON_TYPES',
+        'SCHED_ITEMS',
+        'SUBJECTS',
+        'SUBJECT_GROUP',
+        'SUBJECT_TEACHER',
+        'TEACHERS',
+        'WEEKDAYS',
+    )
     return tables
 
 
@@ -62,8 +62,8 @@ def index():
     selected_table = request.args.get('t', '')
     if (selected_table.isdigit() and
         int(selected_table) >= 0 and
-        int(selected_table) < len(tables)):
-
+        int(selected_table) < len(tables)
+    ):
         selected_table = int(selected_table)
 
         data['selected_table'] = selected_table
@@ -73,6 +73,7 @@ def index():
         data['entries'] = cur.fetchall()
 
     return render_template('list.html', **data)
+
 
 @app.route("/schedule")
 def schedule():
@@ -102,4 +103,5 @@ def schedule():
         ''')
     data['entries'] = cur.fetchall()
     data['selected_table'] = 4
+    data['table_headers'] = ['ID', 'LESSON', 'SUBJECT', 'AUDIENCE', 'GROUPS', 'TEACHER', 'LESSON_TYPE', 'WEEKDAY']
     return render_template('list.html', **data)
