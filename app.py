@@ -17,6 +17,7 @@ def get_db():
             dsn='db/TIMETABLE.FDB',
             user='SYSDBA',
             password='masterkey',
+            connection_class=fdb.ConnectionWithSchema,
             charset='UTF8'
         )
     return g.fb_db
@@ -30,24 +31,43 @@ def close_db(error):
 
 
 def get_tables():
-    cur = get_db().cursor()
-    query = '''select 
-                   rdb$relation_name 
-               from 
-                   rdb$relations 
-               where rdb$view_blr is null 
-                   and (rdb$system_flag is null or rdb$system_flag = 0)'''
-    cur.execute(query);
-    tables = tuple([x[0] for x in cur.fetchall()])
+    tables = (
+            'AUDIENCES',
+            'GROUPS',
+            'LESSONS',
+            'LESSON_TYPES',
+            'SUBJECTS',
+            'SUBJECT_GROUP',
+            'SUBJECT_TEACHER',
+            'TEACHERS',
+            'WEEKDAYS',
+            )
     return tables
 
 
 @app.route("/")
 def index():
-    selected_table=request.args.get('db', '')
-    cur = get_db().cursor()
-    query = 'SELECT * FROM ?'
-    cur.execute("SELECT * from WEEKDAYS", ('name',))
+    con = get_db()
+    cur = con.cursor()
+    data = {}
+    tables = get_tables()
+    data['tables'] = tables
 
-    return render_template('list.html', tables=get_tables(), entries=cur.fetchall(), selected_table=selected_table)
+    selected_table = request.args.get('t', '')
+    if (selected_table.isdigit() and
+        int(selected_table) >= 0 and
+        int(selected_table) < len(tables)):
+
+        data['selected_table'] = selected_table
+        data['teachers'] = get_db().get_table('TEACHERS')
+
+        cur.execute("SELECT * from " + tables[int(selected_table)])
+        data['entries']=cur.fetchall()
+
+    return render_template('list.html', **data)
+
+# tables=tables,
+#             entries=entries,
+#             selected_table=selected_table,
+#             rr=teachers
 

@@ -1,7 +1,8 @@
 <form action="{{ url_for('index') }}">
-  <select name='db'>
+  <select name='t'>
     {% for option in options %}
-      <option {% if selected_table == option|trim %} selected {% endif %}>{{ option }}</option>
+
+      <option {% if loop.index0 == selected|int %} selected {% endif %} value={{ loop.index0 }}>{{ option }}</option>
     {% endfor %}
   </select> 
   <input type="submit" value="Показать">
