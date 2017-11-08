@@ -1,9 +1,10 @@
 <form action="{{ url_for('index') }}">
-  <select name='t'>
-    {% for option in options %}
-
-      <option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value={{ loop.index0 }}>{{ option }}</option>
-    {% endfor %}
-  </select> 
-  <input type="submit" value="Показать">
+  <div class="form-group">
+    <select name='t' class="form-control">
+      {% for option in options %}
+        <option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value={{ loop.index0 }}>{{ option }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <input type="submit" value="Показать" class="btn btn-primary">
 </form>
