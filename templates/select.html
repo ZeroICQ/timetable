@@ -2,7 +2,7 @@
   <select name='t'>
     {% for option in options %}
 
-      <option {% if loop.index0 == selected|int %} selected {% endif %} value={{ loop.index0 }}>{{ option }}</option>
+      <option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value={{ loop.index0 }}>{{ option }}</option>
     {% endfor %}
   </select> 
   <input type="submit" value="Показать">

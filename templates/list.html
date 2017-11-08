@@ -1,31 +1,38 @@
 {% extends "layout.html" %}
 {% block body %}
-  {% with options=tables, selected=selected_table%}
-    {% include "select.html" %}
-  {% endwith %}
-
-  <div class=entries>
-    {# {{ rr.columns[0].name }} #}
-    <table>
-      <thead>
-        {% for header in table_headers %}
-          <th>
-            {{ header }}
-          </th>
-        {% endfor %}
-      </thead>
-
-      {% for entry in entries %}
-        <tr>
-
-        {% for col in entry %}
-          <td>
-            {{ col }}
-          </td>
-        {% endfor%}
-
-      </tr>
-      {% endfor %}
-    </table>
+<div class="row">
+  <div class="col-sm-12 col-md-3">
+    {% with options=tables, selected=selected_table%}
+      {% include "select.html" %}
+    {% endwith %}
   </div>
+
+  <div class="col">
+    {% if selected_table is defined %}
+      <div class=entries>
+        <table class="table table-hover table-responsive text-center">
+          <thead>
+            {% for header in table_headers %}
+              <th>
+                {{ header }}
+              </th>
+            {% endfor %}
+          </thead>
+
+          {% for entry in entries %}
+
+            <tr>
+            {% for col in entry %}
+              <td>
+                {{ col }}
+              </td>
+            {% endfor%}
+          </tr>
+
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
