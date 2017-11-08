@@ -3,10 +3,20 @@
   {% with options=tables %}
     {% include "select.html" %}
   {% endwith %}
+
   <div class=entries>
-   {% for entry in entries %}
-    {{ entry }}
-    <br>
-  {% endfor %}
+    <table>
+      {% for entry in entries %}
+        <tr>
+
+        {% for col in entry %}
+          <td>
+            {{ col }}
+          </td>
+        {% endfor%}
+
+      </tr>
+      {% endfor %}
+    </table>
   </div>
 {% endblock %}

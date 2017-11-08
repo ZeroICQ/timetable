@@ -44,8 +44,10 @@ def get_tables():
 
 @app.route("/")
 def index():
+    selected_table=request.args.get('db', '')
     cur = get_db().cursor()
-    query = 'SELECT * FROM WEEKDAYS';
-    cur.execute(query);
-    return render_template('list.html', tables=get_tables(), entries=cur.fetchall())
+    query = 'SELECT * FROM ?'
+    cur.execute("SELECT * from WEEKDAYS", ('name',))
+
+    return render_template('list.html', tables=get_tables(), entries=cur.fetchall(), selected_table=selected_table)
 
