@@ -45,10 +45,15 @@ def get_tables():
     return tables
 
 
+def get_tabled_headers(selected_table):
+    return [coll.name for coll in get_db().get_table(get_tables()[selected_table]).columns]
+
+
 @app.route("/")
 def index():
     con = get_db()
     cur = con.cursor()
+
     data = {}
     tables = get_tables()
     data['tables'] = tables
@@ -58,16 +63,12 @@ def index():
         int(selected_table) >= 0 and
         int(selected_table) < len(tables)):
 
-        data['selected_table'] = selected_table
-        data['teachers'] = get_db().get_table('TEACHERS')
+        selected_table = int(selected_table)
 
-        cur.execute("SELECT * from " + tables[int(selected_table)])
-        data['entries']=cur.fetchall()
+        data['selected_table'] = selected_table
+        data['table_headers'] = get_tabled_headers(selected_table)
+
+        cur.execute("SELECT * from " + tables[selected_table])
+        data['entries'] = cur.fetchall()
 
     return render_template('list.html', **data)
-
-# tables=tables,
-#             entries=entries,
-#             selected_table=selected_table,
-#             rr=teachers
-

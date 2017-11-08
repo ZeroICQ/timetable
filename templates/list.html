@@ -7,6 +7,14 @@
   <div class=entries>
     {# {{ rr.columns[0].name }} #}
     <table>
+      <thead>
+        {% for header in table_headers %}
+          <th>
+            {{ header }}
+          </th>
+        {% endfor %}
+      </thead>
+
       {% for entry in entries %}
         <tr>
 
