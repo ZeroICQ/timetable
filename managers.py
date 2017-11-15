@@ -1,6 +1,6 @@
 import fdb
 import flask
-# from models import BaseModel
+from models import BaseModel
 
 
 def get_db():
@@ -25,11 +25,25 @@ def close_db(error):
 
 
 class BaseManager:
-    def __init__(self, table_name):
-        self.table_name = table_name
+    def __init__(self, model: BaseModel):
+        self.model = model
 
-    def fetch_all(self):
+    def fetch_all_raw(self):
         cur = get_db().cursor()
-        cur.execute("SELECT * from " + self.table_name)
+        table_name = self.model.get_table_name()
+
+        colls = self.model.get_colls()
+        last = len(colls) - 1
+
+        sql = 'SELECT '
+        for i, coll in enumerate(self.model.get_colls()):
+            sql += coll.select_coll()
+            if i != last:
+                sql += ','
+            sql += ' '
+
+        sql += 'from ' + table_name
+        cur.execute(sql)
+
         return cur.fetchall()
 

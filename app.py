@@ -36,14 +36,19 @@ def index():
 
     try:
         selected_table = int(selected_table)
-
-        if 0 <= selected_table < len(tables):
-            data['selected_table'] = selected_table
-            selected_model = tables[selected_table]()
-            data['table_headers'] = selected_model.get_titles()
-            
     except ValueError:
-        pass
+        return render_template('list.html', **data)
+
+    if 0 <= selected_table < len(tables):
+        data['selected_table'] = selected_table
+
+        selected_model = tables[selected_table]()
+
+        #TODO: узнать насколько это плохо и как убрать циклическую зависимость иначе
+        manager = getattr(managers, selected_model.get_manager())(selected_model)
+        data['table_headers'] = selected_model.get_titles()
+        data['entries'] = manager.fetch_all_raw()
+
 
     return render_template('list.html', **data)
 
