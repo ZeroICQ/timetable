@@ -1,11 +1,18 @@
 {% extends "layout.html" %}
+
+{% block navbar %}
+  {% with options=tables, selected=selected_table%}
+    {% include "menu.html" %}
+  {% endwith %}
+{% endblock %}
+
 {% block body %}
-<div class="row">
+{#<div class="row">
   <div class="col-sm-12 col-md-3">
     {% with options=tables, selected=selected_table%}
       {% include "select.html" %}
     {% endwith %}
-  </div>
+  </div>#}
 
   <div class="col">
     {% if selected_table is defined %}

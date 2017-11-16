@@ -21,7 +21,11 @@ class SQLSelect(SQLBuilder):
 
         self.query += ' '
 
-    def add_col(self, coll_name):
+    def add_col(self, coll_name, table=None):
+        if table is None:
+            table= self.from_table
+
+        coll_name = table + '.' + coll_name
         self.cols.append(coll_name)
 
     def add_left_join(self,  table_name, col_name, target_pk, col_pk='id'):
@@ -45,6 +49,6 @@ class SQLSelect(SQLBuilder):
         print('--------------------')
         print(self.left_joins)
         for join in self.left_joins:
-            self.query += 'LEFT JOIN {0} on {1}={0}.{2}'.format(join['table_name'], join['col_name'], join['target_pk'], self.from_table, join['col_pk']) + ' '
+            self.query += 'LEFT JOIN {0} on {3}.{1}={0}.{2}'.format(join['table_name'], join['col_name'], join['target_pk'], self.from_table, join['col_pk']) + ' '
         print(self.query)
         return self.query

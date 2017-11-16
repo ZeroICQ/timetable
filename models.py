@@ -90,6 +90,48 @@ class GroupsModel(BaseModel):
         self.name = StringField(title='Группа', col_name='name')
 
 
+class LessonsModel(BaseModel):
+    title = 'Пары'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'LESSONS'
+        self.pk = PKField()
+        self.name = StringField(title='Название', col_name='name')
+        self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
+
+class LessonTypesModel(BaseModel):
+    title = 'Тип пары'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'lesson_types'
+        self.pk = PKField()
+        self.name = StringField(title='Название', col_name='name')
+
+
+class SchedItemsModel(BaseModel):
+    title = 'Расписание'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'sched_items'
+        self.pk = PKField()
+        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons',
+                                      target_fields=['name'], target_fields_titles=['Пара'])
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
+                                       target_fields=['name'], target_fields_titles=['Предмет'])
+        self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences',
+                                        target_fields=['name'], target_fields_titles=['Аудитория'])
+        self.group = ForeignKeyField(col_name='group_id', target_table='groups',
+                                     target_fields=['name'], target_fields_titles=['Группа'])
+        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers',
+                                       target_fields=['name'], target_fields_titles=['ФИО Преподавателя'])
+        self.type = ForeignKeyField(col_name='type_id', target_table='lesson_types',
+                                    target_fields=['name'], target_fields_titles=['Тип'])
+        self.weekday = ForeignKeyField(col_name='weekday_id', target_table='weekdays',
+                                       target_fields=['name'], target_fields_titles=['День недели'])
+
 
 class SubjectsModel(BaseModel):
     title = 'Предметы'
@@ -101,17 +143,44 @@ class SubjectsModel(BaseModel):
         self.name = StringField(title='Предмет', col_name='name')
 
 
-
 class SubjectGroupModel(BaseModel):
-    title = 'Группа - предмет'
+    title = 'Учебный план'
 
     def __init__(self):
         super().__init__()
-        self.table_name='SUBJECT_GROUP'
-        self.subject = ForeignKeyField('Предмет', col_name='subject_id', target_table='subjects', target_fields=['name'], target_fields_titles=['Название предмета'])
-        self.groups = ForeignKeyField('Группа', col_name='group_id', target_table='groups', target_fields=['name'], target_fields_titles=['Название группы'])
+        self.table_name = 'SUBJECT_GROUP'
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
+                                       target_fields=['name'], target_fields_titles=['Название предмета'])
+        self.groups = ForeignKeyField(col_name='group_id', target_table='groups',
+                                      target_fields=['name'], target_fields_titles=['Название группы'])
+
+class SubjectTeacherModel(BaseModel):
+    title = 'Нагрузка учителя'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'subject_teacher'
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
+                                       target_fields=['name'], target_fields_titles=['Название предмета'])
+        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers',
+                                       target_fields=['name'], target_fields_titles=['ФИО Преподавателя'])
+
+class TeachersModel(BaseModel):
+    title = 'Учителя'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'teachers'
+        self.name = StringField('ФИО', col_name='name')
 
 
-# a = AudienceModel()
-# print(a.__dict__)
-# print(a.get_titles())
+class WeekdaysModel(BaseModel):
+    title = 'Дни недели'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'weekdays'
+        self.name = StringField('Название', col_name='name')
+        self.name = IntegerField('Порядковый номер', col_name='order_number')
+
+

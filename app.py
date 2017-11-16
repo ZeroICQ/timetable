@@ -16,29 +16,34 @@ def on_teardown(error):
 def get_models():
     tables = (
         models.AudienceModel,
-        models.SubjectGroupModel,
+        models.GroupsModel,
+        models.LessonsModel,
+        models.LessonTypesModel,
+        models.SchedItemsModel,
         models.SubjectsModel,
-        models.GroupsModel
-    )
+        models.SubjectGroupModel,
+        models.SubjectTeacherModel,
+        models.TeachersModel,
+        models.WeekdaysModel)
     return tables
 
 # def get_tabled_headers(selected_table):
 #     return [coll.name for coll in get_db().get_table(get_tables()[selected_table]).columns]
 
 
-@app.route("/")
-def index():
+@app.route("/<int:selected_table>/")
+def index(selected_table):
     data = {}
     tables = get_models()
 
     data['tables'] = [title.get_title() for title in tables]
 
-    selected_table = request.args.get('t', '')
+    # selected_table = request.args.get('t', '')
 
-    try:
-        selected_table = int(selected_table)
-    except ValueError:
-        return render_template('list.html', **data)
+    # try:
+    #     selected_table = int(selected_table)
+    # except ValueError:
+    #     return render_template('list.html', **data)
 
     if 0 <= selected_table < len(tables):
         data['selected_table'] = selected_table

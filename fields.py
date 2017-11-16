@@ -35,7 +35,7 @@ class ForeignKeyField(BaseField):
 
     def select_col(self, SQLBuilder: SQLSelect):
         for trgt in self.target_fields:
-            SQLBuilder.add_col(self.target_table + '.' + trgt)
+            SQLBuilder.add_col(trgt, self.target_table)
 
         SQLBuilder.add_left_join(self.target_table, self.col_name, self.target_pk)
 
