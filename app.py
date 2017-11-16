@@ -3,7 +3,6 @@ import flask
 from flask import Flask
 from flask import request
 from flask import render_template
-import managers
 import models
 
 app = Flask(__name__)
@@ -11,15 +10,17 @@ app = Flask(__name__)
 
 @app.teardown_appcontext
 def on_teardown(error):
-    managers.close_db(error)
+    models.close_db(error)
 
 
 def get_models():
     tables = (
         models.AudienceModel,
+        models.SubjectGroupModel,
+        models.SubjectsModel,
+        models.GroupsModel
     )
     return tables
-
 
 # def get_tabled_headers(selected_table):
 #     return [coll.name for coll in get_db().get_table(get_tables()[selected_table]).columns]
@@ -30,7 +31,7 @@ def index():
     data = {}
     tables = get_models()
 
-    data['tables'] = tables
+    data['tables'] = [title.get_title() for title in tables]
 
     selected_table = request.args.get('t', '')
 
@@ -44,10 +45,8 @@ def index():
 
         selected_model = tables[selected_table]()
 
-        #TODO: узнать насколько это плохо и как убрать циклическую зависимость иначе
-        manager = getattr(managers, selected_model.get_manager())(selected_model)
         data['table_headers'] = selected_model.get_titles()
-        data['entries'] = manager.fetch_all_raw()
+        data['entries'] = selected_model.fetch_all()
 
 
     return render_template('list.html', **data)
