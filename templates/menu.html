@@ -1,17 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <!--<a class="navbar-brand" href="#">Navbar</a>-->
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
+  <!--&lt;!&ndash;<a class="navbar-brand" href="#">Navbar</a>&ndash;&gt;-->
+  <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">-->
+    <!--<span class="navbar-toggler-icon"></span>-->
+  <!--</button>-->
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      {% for option in options %}
-        <li class="nav-item {% if selected is defined and loop.index0 == selected|int %} active {% endif %}">
-          <a class="nav-link" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>
-        </li>
-        <!--<option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>-->
-      {% endfor %}
+  <!--<div class="collapse navbar-collapse" id="navbarSupportedContent">-->
+    <!--<ul class="navbar-nav mr-auto">-->
+      <!--{% for option in options %}-->
+        <!--<li class="nav-item {% if selected is defined and loop.index0 == selected|int %} active {% endif %}">-->
+          <!--<a class="nav-link" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>-->
+        <!--</li>-->
+        <!--&lt;!&ndash;<option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>&ndash;&gt;-->
+      <!--{% endfor %}-->
 
       <!--<li class="nav-item dropdown">-->
         <!--<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
@@ -25,10 +25,17 @@
         <!--</div>-->
       <!--</li>-->
 
-    </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>
-  </div>
+    <!--</ul>-->
+    <!--<form class="form-inline my-2 my-lg-0">-->
+      <!--<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">-->
+      <!--<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+    <!--</form>-->
+  <!--</div>-->
+<!--</nav>-->
+
+<nav>
+  {% for option in options %}
+  <a class="nav-link {% if selected is defined and loop.index0 == selected|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>
+    <!--<option {% if selected is defined and loop.index0 == selected|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>-->
+  {% endfor %}
 </nav>
