@@ -2,21 +2,16 @@
 
 {% block body %}
 <div class="row">
-  {#<div class="col-sm-12 col-md-3">
-    {% with options=tables, selected=selected_table%}
-      {% include "select.html" %}
-    {% endwith %}
-  </div>#}
   <div class="col-sm-12 col-md-3">
     {% with options=tables, selected=selected_table%}
       {% include "menu.html" %}
     {% endwith %}
   </div>
 
-  <div class="col">
+  <div class="col col-md-9">
     {% if selected_table is defined %}
       <div class=entries>
-        <table class="table table-hover table-responsive text-center">
+        <table class="table table-hover  table-bordered table table-responsive-sm text-center">
           <thead>
             {% for header in table_headers %}
               <th>

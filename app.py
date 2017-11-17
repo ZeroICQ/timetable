@@ -32,18 +32,12 @@ def get_models():
 
 
 @app.route("/<int:selected_table>/")
-def index(selected_table):
+@app.route("/")
+def index(selected_table=-1):
     data = {}
     tables = get_models()
 
     data['tables'] = [title.get_title() for title in tables]
-
-    # selected_table = request.args.get('t', '')
-
-    # try:
-    #     selected_table = int(selected_table)
-    # except ValueError:
-    #     return render_template('list.html', **data)
 
     if 0 <= selected_table < len(tables):
         data['selected_table'] = selected_table
@@ -55,7 +49,6 @@ def index(selected_table):
 
 
     return render_template('list.html', **data)
-
 
 # @app.route("/schedule")
 # def schedule():
