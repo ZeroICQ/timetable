@@ -3,7 +3,7 @@
 {% block body %}
 <div class="row">
   <div class="col-sm-12 col-md-3">
-    {% with options=tables, selected=selected_table%}
+    {% with options=tables, selected=selected_table, cols=table_headers%}
       {% include "menu.html" %}
     {% endwith %}
   </div>
@@ -11,7 +11,7 @@
   <div class="col col-md-9">
     {% if selected_table is defined %}
       <div class=entries>
-        <table class="table table-hover  table-bordered table table-responsive-sm text-center">
+        <table class="table table-hover table-bordered table table-responsive-sm text-center">
           <thead>
             {% for header in table_headers %}
               <th>

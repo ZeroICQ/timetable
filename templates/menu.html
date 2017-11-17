@@ -3,3 +3,15 @@
   <a class="nav-link {% if selected is defined and loop.index0 == selected|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>
   {% endfor %}
 </nav>
+
+<form>
+  <div class="form-group">
+    <select name='sc' class="form-control">
+      {% for option in cols%}
+        <option {#{% if selected is defined and loop.index0 == selected|int %} selected {% endif %}#} value="{{ loop.index0 }}">{{ option }}</option>
+      {% endfor %}
+    </select>
+    <input name="search_val">
+  </div>
+  <input type="submit" value="Искать" class="btn btn-primary">
+</form>
