@@ -1,54 +1,51 @@
 class SQLBuilder:
     def __init__(self, operation=''):
         self.operation = operation
-        self.cols = []
+        self.fields = []
+
+    @property
+    def query(self):
+        return self.operation + ' '
 
 class SQLSelect(SQLBuilder):
-    def __init__(self, from_table):
-        super().__init__('SELECT')
-        self.left_joins = []
-        self.from_table = from_table
-        self.query = 'SELECT '
+    def __init__(self, target_table):
+        super().__init__('SELECT ')
 
-    def add_enum(self, enum):
+        self.left_joins = []
+        self.from_table = target_table
+
+    def add_selected_fields(self, query):
         first = True
-        for elem in enum:
+        for field in self.fields:
             if first:
                 first = False
             else:
-                self.query += ', '
-            self.query += elem
+                query += ', '
+            query += field
 
-        self.query += ' '
+        query += ' '
+        return query
 
-    def add_col(self, coll_name, table=None):
+    def add_field(self, field, table=None):
         if table is None:
-            table= self.from_table
+            table = self.from_table.table_name
 
-        coll_name = table + '.' + coll_name
-        self.cols.append(coll_name)
+        col_name = table + '.' + field
+        self.fields.append(col_name)
 
-    def add_left_join(self,  table_name, col_name, target_pk, col_pk='id'):
-        self.left_joins.append({'table_name': table_name, 'col_name': col_name, 'target_pk': target_pk, 'col_pk': col_pk})
+    def add_left_join(self, field):
+        self.left_joins.append(field)
+        # self.left_joins.append({'table_name': table_name, 'col_name': col_name, 'target_pk': target_pk, 'col_pk': col_pk})
 
-    def get_query(self):
-        print('----------------------------------')
-        print(self.from_table)
-        last = len(self.cols) - 1
-        print(self.cols)
-        self.add_enum(self.cols)
-        # for i, col in enumerate(self.cols):
-        #     query += col
-        #     if i != last:
-        #         query += ','
-        #     query += ' '
-
-        self.query += 'from ' + self.from_table + ' '
-
-        first = True
-        print('--------------------')
-        print(self.left_joins)
-        for join in self.left_joins:
-            self.query += 'LEFT JOIN {0} on {3}.{1}={0}.{2}'.format(join['table_name'], join['col_name'], join['target_pk'], self.from_table, join['col_pk']) + ' '
-        print(self.query)
-        return self.query
+    @property
+    def query(self):
+        compiled_query = super().query
+        compiled_query = self.add_selected_fields(compiled_query)
+        compiled_query += 'from ' + self.from_table.table_name + ' '
+        print (self.left_joins)
+        for field in self.left_joins:
+            # self.query += 'LEFT JOIN {0} on {3}.{1}={0}.{2}'.format(ljoin['table_name'], ljoin['col_name'], ljoin['target_pk'], self.from_table, ljoin['col_pk']) + ' '
+            compiled_query  += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name, field.target_pk, self.from_table.table_name)
+        print('------------------------------------------------')
+        print(compiled_query)
+        return compiled_query

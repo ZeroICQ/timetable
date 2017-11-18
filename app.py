@@ -13,7 +13,7 @@ def on_teardown(error):
     models.close_db(error)
 
 
-def get_models():
+def get_tables():
     tables = (
         models.AudienceModel,
         models.GroupsModel,
@@ -35,18 +35,17 @@ def get_models():
 @app.route("/")
 def index(selected_table=-1):
     data = {}
-    tables = get_models()
+    tables = get_tables()
 
-    data['tables'] = [title.get_title() for title in tables]
+    data['tables_titles'] = [table.title for table in tables]
 
     if 0 <= selected_table < len(tables):
         data['selected_table'] = selected_table
 
         selected_model = tables[selected_table]()
 
-        data['table_headers'] = selected_model.get_titles()
+        data['fields_titles'] = selected_model.fields_titles
         data['entries'] = selected_model.fetch_all()
-
 
     return render_template('list.html', **data)
 

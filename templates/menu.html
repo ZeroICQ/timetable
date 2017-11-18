@@ -1,17 +1,23 @@
-<nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
-  {% for option in options %}
-  <a class="nav-link {% if selected is defined and loop.index0 == selected|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>
-  {% endfor %}
-</nav>
-
 <form>
   <div class="form-group">
-    <select name='sc' class="form-control">
-      {% for option in cols%}
+    <label for="search_field_select">Поле</label>
+    <select id="search_field_select" name='search_field' class="form-control">
+      {% for option in fields_titles%}
         <option {#{% if selected is defined and loop.index0 == selected|int %} selected {% endif %}#} value="{{ loop.index0 }}">{{ option }}</option>
       {% endfor %}
     </select>
-    <input name="search_val">
-  </div>
-  <input type="submit" value="Искать" class="btn btn-primary">
+    </div>
+
+    <div class="form-group">
+      <label for="search_val">Значение</label>
+      <input id="search_val" name="search_val" type="search" class="form-control">
+    </div>
+
+  <input type="submit" value="Искать" class="form-control btn btn-primary">
 </form>
+
+<nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
+  {% for option in tables_titles %}
+    <a class="nav-link {% if selected_table is defined and loop.index0 == selected_table|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0) }}">{{ option }}</a>
+  {% endfor %}
+</nav>

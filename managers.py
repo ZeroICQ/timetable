@@ -29,5 +29,4 @@ class BaseManager:
     def __init__(self, model: BaseModel):
         self.model = model
 
-    www.w
 

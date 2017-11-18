@@ -1,48 +1,47 @@
-from sqlbuilder import SQLSelect
-
-
 class BaseField:
-    def __init__(self, title=None, width=10, col_name=None):
-        self.title = title
-        self.width = width
+    def __init__(self, title=None, col_name=None, width=10):
+        self._title = title
         self.col_name = col_name
+        self.width = width
 
-    def get_title(self):
-        return self.title
+    def select_col(self, sql_builder):
+        sql_builder.add_field(self.col_name)
 
-    def select_col(self, SQLBuilder: SQLSelect):
-        SQLBuilder.add_col(self.col_name)
+    @property
+    def title(self):
+        return self._title
 
 
 class IntegerField(BaseField):
-    def __init__(self, title=None, width=10, col_name=None):
-        super().__init__(title, width, col_name)
+    def __init__(self, title=None, col_name=None, width=10):
+        super().__init__(title, col_name, width)
 
 
 class PKField(IntegerField):
-    def __init__(self, title='ID', width=10, col_name='ID'):
-        super().__init__(title, width, col_name)
+    def __init__(self, title='ID', col_name='ID', width=10):
+        super().__init__(title, col_name, width)
 
 
 class ForeignKeyField(BaseField):
-    def __init__(self, title=None, width=10, col_name=None, target_table=None,
-                 target_fields=[], target_fields_titles=[], target_pk='id'):
-        super().__init__(title, width, col_name)
+    def __init__(self, title=None, col_name=None, width=10, target_table=None,
+                 target_fields=(), target_pk='id'):
+        super().__init__(title, col_name,  width)
+
         self.target_pk = target_pk
         self.target_fields = target_fields
-        self.target_table_titles = target_fields_titles
         self.target_table = target_table
 
-    def select_col(self, SQLBuilder: SQLSelect):
-        for trgt in self.target_fields:
-            SQLBuilder.add_col(trgt, self.target_table)
+    def select_col(self, sql_builder):
+        for field in self.target_fields:
+            sql_builder.add_field(field[0], self.target_table)
 
-        SQLBuilder.add_left_join(self.target_table, self.col_name, self.target_pk)
+        sql_builder.add_left_join(self)
 
-    def get_title(self):
-        return self.target_table_titles
+    @property
+    def title(self):
+        return [target_field[1] for target_field in self.target_fields]
 
 
 class StringField(BaseField):
-    def __init__(self, title=None, width=50, col_name=None):
-        super().__init__(title, width, col_name)
+    def __init__(self, title=None, col_name=None, width=50):
+        super().__init__(title, col_name, width)

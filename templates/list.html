@@ -3,36 +3,30 @@
 {% block body %}
 <div class="row">
   <div class="col-sm-12 col-md-3">
-    {% with options=tables, selected=selected_table, cols=table_headers%}
-      {% include "menu.html" %}
-    {% endwith %}
+    {% include "menu.html" %}
   </div>
 
   <div class="col col-md-9">
     {% if selected_table is defined %}
-      <div class=entries>
-        <table class="table table-hover table-bordered table table-responsive-sm text-center">
-          <thead>
-            {% for header in table_headers %}
-              <th>
-                {{ header }}
-              </th>
-            {% endfor %}
-          </thead>
-
-          {% for entry in entries %}
-
-            <tr>
-            {% for col in entry %}
-              <td>
-                {{ col }}
-              </td>
-            {% endfor%}
-          </tr>
-
+      <table class="table table-hover table-bordered table table-responsive-sm text-center">
+        <thead>
+          {% for title in fields_titles %}
+            <th>
+              {{ title }}
+            </th>
           {% endfor %}
-        </table>
-      </div>
+        </thead>
+
+        {% for entry in entries %}
+          <tr>
+          {% for field in entry %}
+            <td>
+              {{ field }}
+            </td>
+          {% endfor%}
+        </tr>
+        {% endfor %}
+      </table>
     {% endif %}
   </div>
 </div>

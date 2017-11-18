@@ -28,16 +28,19 @@ def close_db(error):
 class BaseModel:
     title = None
 
-    def __init__(self,):
+    def __init__(self):
         self.table_name = None
 
-    def get_cols(self):
+    @property
+    def fields(self):
         return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
 
-    def get_titles(self):
+    @property
+    def fields_titles(self):
         titles = []
-        for attr in self.get_cols():
-            title = attr.get_title()
+        for field in self.fields:
+            title = field.title
+
             if isinstance(title, (list, tuple)):
                 for el in title:
                     titles.append(el)
@@ -45,28 +48,16 @@ class BaseModel:
                 titles.append(title)
 
         return titles
-        # return [attr.get_title() for attr in self.get_cols()]
-
-    def get_table_name(self):
-        return self.table_name
-
-    @classmethod
-    def get_title(cls):
-        return cls.title
 
     def fetch_all(self):
         cur = get_db().cursor()
 
-        colls = self.get_cols()
+        sql = SQLSelect(target_table=self)
 
-        last = len(colls) - 1
+        for field in self.fields:
+            field.select_col(sql)
 
-        sql = SQLSelect(from_table=self.table_name)
-
-        for col in self.get_cols():
-            col.select_col(sql)
-
-        cur.execute(sql.get_query())
+        cur.execute(sql.query)
         return cur.fetchall()
 
 
@@ -117,20 +108,13 @@ class SchedItemsModel(BaseModel):
         super().__init__()
         self.table_name = 'sched_items'
         self.pk = PKField()
-        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons',
-                                      target_fields=['name'], target_fields_titles=['Пара'])
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
-                                       target_fields=['name'], target_fields_titles=['Предмет'])
-        self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences',
-                                        target_fields=['name'], target_fields_titles=['Аудитория'])
-        self.group = ForeignKeyField(col_name='group_id', target_table='groups',
-                                     target_fields=['name'], target_fields_titles=['Группа'])
-        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers',
-                                       target_fields=['name'], target_fields_titles=['ФИО Преподавателя'])
-        self.type = ForeignKeyField(col_name='type_id', target_table='lesson_types',
-                                    target_fields=['name'], target_fields_titles=['Тип'])
-        self.weekday = ForeignKeyField(col_name='weekday_id', target_table='weekdays',
-                                       target_fields=['name'], target_fields_titles=['День недели'])
+        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),))
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Предмет'),))
+        self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences', target_fields=(('name', 'Аудитория'),))
+        self.group = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name', 'Группа'),))
+        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
+        self.type = ForeignKeyField(col_name='type_id', target_table='lesson_types', target_fields=(('name', 'Тип'),))
+        self.weekday = ForeignKeyField(col_name='weekday_id', target_table='weekdays', target_fields=(('name', 'День недели'),))
 
 
 class SubjectsModel(BaseModel):
@@ -149,10 +133,9 @@ class SubjectGroupModel(BaseModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'SUBJECT_GROUP'
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
-                                       target_fields=['name'], target_fields_titles=['Название предмета'])
-        self.groups = ForeignKeyField(col_name='group_id', target_table='groups',
-                                      target_fields=['name'], target_fields_titles=['Название группы'])
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
+        self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
+
 
 class SubjectTeacherModel(BaseModel):
     title = 'Нагрузка учителя'
@@ -160,10 +143,9 @@ class SubjectTeacherModel(BaseModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'subject_teacher'
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects',
-                                       target_fields=['name'], target_fields_titles=['Название предмета'])
-        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers',
-                                       target_fields=['name'], target_fields_titles=['ФИО Преподавателя'])
+        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
+        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
+
 
 class TeachersModel(BaseModel):
     title = 'Учителя'
