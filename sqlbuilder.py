@@ -40,20 +40,16 @@ class SQLSelect(SQLBuilder):
 
     def add_left_join(self, field):
         self.left_joins.append(field)
-        # self.left_joins.append({'table_name': table_name, 'col_name': col_name, 'target_pk': target_pk, 'col_pk': col_pk})
 
     @property
     def query(self):
         compiled_query = super().query
         compiled_query = self.add_selected_fields(compiled_query)
         compiled_query += 'from ' + self.from_table.table_name + ' '
-        print (self.left_joins)
         for field in self.left_joins:
-            # self.query += 'LEFT JOIN {0} on {3}.{1}={0}.{2}'.format(ljoin['table_name'], ljoin['col_name'], ljoin['target_pk'], self.from_table, ljoin['col_pk']) + ' '
             compiled_query  += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name, field.target_pk, self.from_table.table_name)
 
         for param_criteria in self.eq_wheres:
-            compiled_query += "WHERE {0} = ? ".format(self.fields[param_criteria])
-        print('------------------------------------------------')
-        print(compiled_query)
+            if 0 <= param_criteria < len(self.fields):
+                compiled_query += "WHERE {0} = ? ".format(self.fields[param_criteria])
         return compiled_query

@@ -3,20 +3,11 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
 from sqlbuilder import SQLSelect
 
-
-def kek_print(text):
-    print('----------------------------------')
-    print(text)
-    print('----------------------------------')
-
-
 def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
     """
-    kek_print('get_db')
     if not hasattr(flask.g, 'fb_db'):
-        kek_print('making connection')
         flask.g.fb_db = fdb.connect(
             dsn='db/TIMETABLE.FDB',
             user='SYSDBA',
@@ -24,30 +15,19 @@ def get_db():
             connection_class=fdb.ConnectionWithSchema,
             charset='UTF8'
         )
-
-    kek_print('connection exists')
     return flask.g.fb_db
 
 
 def get_cursor():
-    kek_print('get cursor')
     if not hasattr(flask.g, 'fb_cur'):
-        kek_print('no cursor')
         flask.g.fb_cur = get_db().cursor()
-
-    kek_print('cursor exits')
-    kek_print(flask.g.fb_cur)
     return flask.g.fb_cur
 
 
 def close_db(error):
-    kek_print('closing db')
     """Closes the database again at the end of the request."""
     if hasattr(flask.g, 'fb_db'):
         flask.g.fb_db.close()
-        kek_print('closed db')
-    kek_print('no db found')
-
 
 
 class BaseModel:
@@ -90,7 +70,6 @@ class BaseModel:
         cur = get_cursor()
         sql = self.select_all()
         sql.add_param_eq_where(field)
-        print(val)
         cur.execute(sql.query, (val,))
         return cur.fetchall()
 

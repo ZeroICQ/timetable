@@ -2,15 +2,15 @@
   <div class="form-group">
     <label for="search_field_select">Поле</label>
     <select id="search_field_select" name='search_field' class="form-control">
-      {% for option in fields_titles%}
-        <option {#{% if selected is defined and loop.index0 == selected|int %} selected {% endif %}#} value="{{ loop.index0 }}">{{ option }}</option>
+      {% for option in fields_titles %}
+        <option {% if search_field is defined and loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
       {% endfor %}
     </select>
     </div>
 
     <div class="form-group">
       <label for="search_val">Значение</label>
-      <input id="search_val" name="search_val" type="search" class="form-control">
+      <input id="search_val" name="search_val" type="search" class="form-control" value="{{ search_val }}">
     </div>
 
   <input type="submit" value="Искать" class="form-control btn btn-primary">

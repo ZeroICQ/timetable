@@ -1,5 +1,3 @@
-import fdb
-import flask
 from flask import Flask
 from flask import request
 from flask import render_template
@@ -8,10 +6,10 @@ import misc
 
 app = Flask(__name__)
 
-
-@app.teardown_appcontext
-def on_teardown(error):
-    models.close_db(error)
+#TODO: investigate crashes
+#@app.teardown_appcontext
+# def on_teardown(error):
+#     models.close_db(error)
 
 
 def get_tables():
@@ -28,14 +26,10 @@ def get_tables():
         models.WeekdaysModel)
     return tables
 
-# def get_tabled_headers(selected_table):
-#     return [coll.name for coll in get_db().get_table(get_tables()[selected_table]).columns]
-
 
 @app.route("/<int:selected_table>/")
 @app.route("/")
 def index(selected_table=-1):
-    models.kek_print('start index')
     data = {}
     tables = get_tables()
 
@@ -52,6 +46,8 @@ def index(selected_table=-1):
         search_val = request.args.get('search_val', None)
 
         if search_field >= 0 and search_val:
+            data['search_val'] = search_val
+            data['search_field'] = search_field
             data['entries'] = selected_model.fetch_all_by_criteria(search_field, search_val)
         else:
             data['entries'] = selected_model.fetch_all()
