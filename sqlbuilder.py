@@ -7,12 +7,17 @@ class SQLBuilder:
     def query(self):
         return self.operation + ' '
 
+
 class SQLSelect(SQLBuilder):
     def __init__(self, target_table):
         super().__init__('SELECT ')
 
         self.left_joins = []
         self.from_table = target_table
+        self.eq_wheres = []
+
+    def add_param_eq_where(self, field_no):
+        self.eq_wheres.append(field_no)
 
     def add_selected_fields(self, query):
         first = True
@@ -46,6 +51,9 @@ class SQLSelect(SQLBuilder):
         for field in self.left_joins:
             # self.query += 'LEFT JOIN {0} on {3}.{1}={0}.{2}'.format(ljoin['table_name'], ljoin['col_name'], ljoin['target_pk'], self.from_table, ljoin['col_pk']) + ' '
             compiled_query  += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name, field.target_pk, self.from_table.table_name)
+
+        for param_criteria in self.eq_wheres:
+            compiled_query += "WHERE {0} = ? ".format(self.fields[param_criteria])
         print('------------------------------------------------')
         print(compiled_query)
         return compiled_query

@@ -8,6 +8,18 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 </head>
 <body>
+  {% with errors = get_flashed_messages(category_filter=["error"]) %}
+  {% if errors %}
+  <div class="alert-message block-message error">
+    <a class="close" href="#">×</a>
+    <ul>
+      {%- for msg in errors %}
+      <li>{{ msg }}</li>
+      {% endfor -%}
+    </ul>
+  </div>
+  {% endif %}
+  {% endwith %}
   <div class="container-fluid">
     <h1>TimeTabletron3000</h1>
     {% block body %}{% endblock %}
