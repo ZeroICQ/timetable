@@ -1,7 +1,8 @@
-def get_positive_int(val):
-    try:
+def mt_int(lbound:int):
+    def f(val):
         val = int(val)
-    except ValueError:
-        return -1
+        if val < lbound:
+            raise ValueError
 
-    return val
+        return val
+    return f

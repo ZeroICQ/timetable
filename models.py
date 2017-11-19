@@ -1,7 +1,8 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
-from sqlbuilder import SQLSelect
+from sqlbuilder import SQLSelect, SQLCountAll
+from math import ceil
 
 def get_db():
     """Opens a new database connection if there is none yet for the
@@ -35,6 +36,7 @@ class BaseModel:
 
     def __init__(self):
         self.table_name = None
+        self.pagination = None
 
     @property
     def fields(self):
@@ -54,8 +56,28 @@ class BaseModel:
 
         return titles
 
-    def select_all(self):
-        sql = SQLSelect(target_table=self)
+    def get_pages(self, field, val):
+        cur = get_cursor()
+        sql = SQLCountAll(self)
+        self.select_all(sql)
+
+        sql.add_param_eq_where(field, val)
+        sql.execute(cur)
+        rows = cur.fetchone()[0]
+
+        if self.pagination:
+            on_page = self.pagination[1]
+        else:
+            on_page = rows
+
+        return ceil(rows/on_page)
+
+    def select_all(self, sql=None):
+        if sql is None:
+            sql = SQLSelect(target_table=self)
+
+        if self.pagination is not None:
+            sql.pagination = self.pagination
         for field in self.fields:
             field.select_col(sql)
         return sql
@@ -63,14 +85,14 @@ class BaseModel:
     def fetch_all(self):
         cur = get_cursor()
         sql = self.select_all()
-        cur.execute(sql.query)
+        sql.execute(cur)
         return cur.fetchall()
 
     def fetch_all_by_criteria(self, field, val):
         cur = get_cursor()
         sql = self.select_all()
-        sql.add_param_eq_where(field)
-        cur.execute(sql.query, (val,))
+        sql.add_param_eq_where(field, val)
+        sql.execute(cur)
         return cur.fetchall()
 
 
