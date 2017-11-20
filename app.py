@@ -31,7 +31,7 @@ def get_tables():
 
 def get_pagination_choices():
     choices = (
-        1, 5, 10, 20
+        5, 10, 20
     )
     return choices
 
@@ -61,6 +61,7 @@ def index(selected_table=-1):
 
         if 0 <= pagination_choice < len(pagination_choices) and 1 <= page:
             selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
+            data['page'] = page
 
 
 

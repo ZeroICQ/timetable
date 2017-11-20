@@ -13,4 +13,12 @@ def modify_query(**new_values):
 
 def register_helpers(app):
     app.add_template_global(modify_query)
+    app.add_template_filter(max_val)
+    app.add_template_filter(min_val)
 
+
+def max_val(l):
+    return max(l)
+
+def min_val(l):
+    return min(l)
