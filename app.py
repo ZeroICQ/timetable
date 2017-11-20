@@ -59,9 +59,9 @@ def index(selected_table=-1):
         pagination_choice = request.args.get('pagination_choice', 0, type=misc.mt_int(0))
         page = request.args.get('page', 1, type=misc.mt_int(1))
 
-        if 0 <= pagination_choice < len(pagination_choices) and 1 <= page:
-            selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
-            data['page'] = page
+        selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
+        data['page'] = page
+        data['pagination_choice'] = pagination_choice
 
 
 
