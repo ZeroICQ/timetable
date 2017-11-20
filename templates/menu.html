@@ -1,18 +1,23 @@
 <form>
-  <div class="form-group">
-    <label for="search_field_select">Поле</label>
-    <select id="search_field_select" name='search_field' class="form-control">
-      {% for option in fields_titles %}
-        <option {% if search_field is defined and loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
-      {% endfor %}
-    </select>
-    </div>
+  <div id="search_fields_container">
+    <div class="search_field_parameters">
+      <div class="form-group">
+        <label for="search_field_select">Поле</label>
+        <select id="search_field_select" name='search_field' class="form-control">
+          {% for option in fields_titles %}
+            <option {% if search_field is defined and loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <div class="form-group">
-      <label for="search_val">Значение</label>
-      <input id="search_val" name="search_val" type="search" class="form-control" value="{{ search_val }}">
+      <div class="form-group">
+        <label for="search_val">Значение</label>
+        <input id="search_val" name="search_val" type="search" class="form-control" value="{{ search_val }}">
+      </div>
+      <button type="button" class="add_search_field btn btn-success"><span class="fa fa-plus"></span></button>
+      <button type="button" class="remove_search_field btn btn-danger"><span class="fa fa-minus"></span></button>
     </div>
-
+  </div>
   <input type="submit" value="Искать" class="form-control btn btn-primary">
 
 
