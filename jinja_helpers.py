@@ -20,5 +20,6 @@ def register_helpers(app):
 def max_val(l):
     return max(l)
 
+
 def min_val(l):
     return min(l)

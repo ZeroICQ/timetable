@@ -1,4 +1,4 @@
-def mt_int(lbound:int):
+def mt_int(lbound):
     def f(val):
         val = int(val)
         if val < lbound:

@@ -63,8 +63,6 @@ def index(selected_table=-1):
         data['page'] = page
         data['pagination_choice'] = pagination_choice
 
-
-
         if search_field and search_val:
             data['search_val'] = search_val
             data['search_field'] = search_field
@@ -73,8 +71,6 @@ def index(selected_table=-1):
         else:
             data['entries'] = selected_model.fetch_all()
             data['pages'] = selected_model.get_pages()
-
-
 
     return render_template('list.html', **data)
 

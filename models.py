@@ -61,7 +61,7 @@ class BaseModel:
         sql = SQLCountAll(self)
         self.select_all(sql)
 
-        if field is not None:
+        if field and val:
             sql.add_param_eq_where(field, val)
 
         sql.execute(cur)
@@ -80,6 +80,7 @@ class BaseModel:
 
         if self.pagination is not None:
             sql.pagination = self.pagination
+
         for field in self.fields:
             field.select_col(sql)
         return sql

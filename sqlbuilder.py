@@ -59,17 +59,12 @@ class SQLBaseSelect(SQLBaseBuilder):
             if 0 <= param_criteria < len(self.fields):
                 compiled_query += "WHERE {0} = ? ".format(self.fields[param_criteria])
 
-        # if self.pagination:
-        #     compiled_query += 'OFFSET ? ROWS FETCH FIRST ? ROWS ONLY '
-
         return compiled_query
 
 
 class SQLCountAll(SQLBaseSelect):
     def add_selected_fields(self, query):
         return query + 'COUNT(*) '
-
-
 
 
 class SQLSelect(SQLBaseSelect):
