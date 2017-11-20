@@ -77,4 +77,4 @@ def index(selected_table=-1):
 
     return render_template('list.html', **data)
 
-app.run(debug=True)
+#app.run(debug=True)

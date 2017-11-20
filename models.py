@@ -56,12 +56,14 @@ class BaseModel:
 
         return titles
 
-    def get_pages(self, field, val):
+    def get_pages(self, field=None, val=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
         self.select_all(sql)
 
-        sql.add_param_eq_where(field, val)
+        if field is not None:
+            sql.add_param_eq_where(field, val)
+
         sql.execute(cur)
         rows = cur.fetchone()[0]
 
