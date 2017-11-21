@@ -56,13 +56,11 @@ class BaseModel:
 
         return titles
 
-    def get_pages(self, field=None, val=None):
+    def get_pages(self, fields=None, values=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
         self.select_all(sql)
-
-        if field and val:
-            sql.add_param_eq_where(field, val)
+        self.add_criteria(fields, values, sql)
 
         sql.execute(cur)
         rows = cur.fetchone()[0]
@@ -91,10 +89,16 @@ class BaseModel:
         sql.execute(cur)
         return cur.fetchall()
 
-    def fetch_all_by_criteria(self, field, val):
+    def add_criteria(self, fields, vals, sql):
+        if len(fields) == len(vals):
+            for param in zip(fields, vals):
+                sql.add_param_eq_where(param[0], param[1])
+
+
+    def fetch_all_by_criteria(self, fields, vals):
         cur = get_cursor()
         sql = self.select_all()
-        sql.add_param_eq_where(field, val)
+        self.add_criteria(fields, vals, sql)
         sql.execute(cur)
         return cur.fetchall()
 
@@ -128,6 +132,7 @@ class LessonsModel(BaseModel):
         self.pk = PKField()
         self.name = StringField(title='Название', col_name='name')
         self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
+
 
 class LessonTypesModel(BaseModel):
     title = 'Тип пары'

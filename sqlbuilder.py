@@ -54,10 +54,20 @@ class SQLBaseSelect(SQLBaseBuilder):
         for field in self.left_joins:
             compiled_query += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name,
                                                                          field.target_pk, self.from_table.table_name)
+        if self.eq_wheres:
+            compiled_query += "WHERE "
 
+        first = True
         for param_criteria in self.eq_wheres:
-            if 0 <= param_criteria < len(self.fields):
-                compiled_query += "WHERE {0} = ? ".format(self.fields[param_criteria])
+            if not (0 <= param_criteria < len(self.fields)):
+                continue
+
+            if first:
+                first = False
+            else:
+                compiled_query += "and "
+
+            compiled_query += "{0} = ? ".format(self.fields[param_criteria])
 
         return compiled_query
 

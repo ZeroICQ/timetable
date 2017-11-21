@@ -53,8 +53,8 @@ def index(selected_table=-1):
 
         data['fields_titles'] = selected_model.fields_titles
 
-        search_field = request.args.get('search_field', None, type=misc.mt_int(0))
-        search_val = request.args.get('search_val', None)
+        search_fields = request.args.getlist('search_field', type=misc.mt_int(0))
+        search_vals = request.args.getlist('search_val')
 
         pagination_choice = request.args.get('pagination_choice', 0, type=misc.mt_int(0))
         page = request.args.get('page', 1, type=misc.mt_int(1))
@@ -63,15 +63,15 @@ def index(selected_table=-1):
         data['page'] = page
         data['pagination_choice'] = pagination_choice
 
-        if search_field and search_val:
-            data['search_val'] = search_val
-            data['search_field'] = search_field
-            data['entries'] = selected_model.fetch_all_by_criteria(search_field, search_val)
-            data['pages'] = selected_model.get_pages(search_field, search_val)
+        if search_fields and search_vals:
+            data['search_vals'] = search_vals
+            data['search_fields'] = search_fields
+            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals)
+            data['pages'] = selected_model.get_pages(search_fields, search_vals)
         else:
             data['entries'] = selected_model.fetch_all()
             data['pages'] = selected_model.get_pages()
 
     return render_template('list.html', **data)
 
-#app.run(debug=True)
+app.run(debug=True)
