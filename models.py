@@ -3,6 +3,8 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
 from sqlbuilder import SQLSelect, SQLCountAll
 from math import ceil
+from conditions import BaseCondition
+
 
 def get_db():
     """Opens a new database connection if there is none yet for the
@@ -56,11 +58,11 @@ class BaseModel:
 
         return titles
 
-    def get_pages(self, fields=None, values=None):
+    def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
         self.select_all(sql)
-        self.add_criteria(fields, values, sql)
+        self.add_criteria(fields, values, logic_operators, compare_operators, sql)
 
         sql.execute(cur)
         rows = cur.fetchone()[0]
@@ -94,14 +96,14 @@ class BaseModel:
             return
 
         if len(fields) == len(vals):
-            for param in zip(fields, vals):
+            for param in zip(fields, vals, logic_operators, compare_operators):
                 if param[1]:
-                    sql.add_param_eq_where(param[0], param[1])
+                    sql.add_where_param(BaseCondition(param[0], param[1], param[2], param[3]))
 
     def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators):
         cur = get_cursor()
         sql = self.select_all()
-        self.add_criteria(fields, vals, logic_operators, compare_operators,sql)
+        self.add_criteria(fields, vals, logic_operators, compare_operators, sql)
         sql.execute(cur)
         return cur.fetchall()
 

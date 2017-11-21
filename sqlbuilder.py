@@ -1,25 +1,20 @@
 class SQLBaseBuilder:
-    logic_operators = ['AND', 'OR']
-    compare_operators = ['=', '!=', '>', '>=', '<', '<=', 'LIKE']
-
     def __init__(self, operation=''):
         self.operation = operation
         self.fields = []
         self.pagination = ()
-        self.params = []
-        self.eq_wheres = []
+        self.conditions = []
 
     @property
     def query(self):
         return self.operation + ' '
 
-    def add_param_eq_where(self, field_no, val):
-        self.eq_wheres.append(field_no)
-        self.params.append(val)
+    def add_where_param(self, cond):
+        self.conditions.append(cond)
 
     def execute(self, cur):
-        return cur.execute(self.query, (self.params + list(self.pagination)))
-
+        params = [cond.val for cond in self.conditions ]
+        return cur.execute(self.query, (params + list(self.pagination)))
 
 
 class SQLBaseSelect(SQLBaseBuilder):
@@ -58,20 +53,20 @@ class SQLBaseSelect(SQLBaseBuilder):
         for field in self.left_joins:
             compiled_query += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name,
                                                                          field.target_pk, self.from_table.table_name)
-        if self.eq_wheres:
+        if self.conditions:
             compiled_query += "WHERE "
 
         first = True
-        for param_criteria in self.eq_wheres:
-            if not (0 <= param_criteria < len(self.fields)):
+        for cond in self.conditions:
+            if not (0 <= cond.field < len(self.fields)):
                 continue
 
             if first:
                 first = False
             else:
-                compiled_query += "and "
+                compiled_query += cond.logic_operator + ' '
 
-            compiled_query += "{0} = ? ".format(self.fields[param_criteria])
+            compiled_query += "{0} {1} ? ".format(self.fields[cond.field], cond.compare_operator)
 
         return compiled_query
 
