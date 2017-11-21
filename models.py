@@ -89,16 +89,19 @@ class BaseModel:
         sql.execute(cur)
         return cur.fetchall()
 
-    def add_criteria(self, fields, vals, sql):
+    def add_criteria(self, fields, vals, logic_operators, compare_operators, sql):
+        if not fields or not vals:
+            return
+
         if len(fields) == len(vals):
             for param in zip(fields, vals):
-                sql.add_param_eq_where(param[0], param[1])
+                if param[1]:
+                    sql.add_param_eq_where(param[0], param[1])
 
-
-    def fetch_all_by_criteria(self, fields, vals):
+    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators):
         cur = get_cursor()
         sql = self.select_all()
-        self.add_criteria(fields, vals, sql)
+        self.add_criteria(fields, vals, logic_operators, compare_operators,sql)
         sql.execute(cur)
         return cur.fetchall()
 

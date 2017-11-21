@@ -1,4 +1,7 @@
 class SQLBaseBuilder:
+    logic_operators = ['AND', 'OR']
+    compare_operators = ['=', '!=', '>', '>=', '<', '<=', 'LIKE']
+
     def __init__(self, operation=''):
         self.operation = operation
         self.fields = []
@@ -16,6 +19,7 @@ class SQLBaseBuilder:
 
     def execute(self, cur):
         return cur.execute(self.query, (self.params + list(self.pagination)))
+
 
 
 class SQLBaseSelect(SQLBaseBuilder):

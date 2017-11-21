@@ -4,6 +4,7 @@ from flask import render_template
 import models
 import misc
 import jinja_helpers
+from sqlbuilder import SQLBaseBuilder
 
 app = Flask(__name__)
 jinja_helpers.register_helpers(app)
@@ -56,6 +57,12 @@ def index(selected_table=-1):
         search_fields = request.args.getlist('search_field', type=misc.mt_int(0))
         search_vals = request.args.getlist('search_val')
 
+        logic_operators = request.args.getlist('logic_operator', type=misc.mt_int(0))
+        compare_operators = request.args.getlist('compare_operator', type=misc.mt_int(0))
+
+        data['logic_search_operators_list'] = SQLBaseBuilder.logic_operators
+        data['compare_search_operators_list'] = SQLBaseBuilder.compare_operators
+
         pagination_choice = request.args.get('pagination_choice', 0, type=misc.mt_int(0))
         page = request.args.get('page', 1, type=misc.mt_int(1))
 
@@ -66,8 +73,11 @@ def index(selected_table=-1):
         if search_fields and search_vals:
             data['search_vals'] = search_vals
             data['search_fields'] = search_fields
-            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals)
+            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators, compare_operators)
             data['pages'] = selected_model.get_pages(search_fields, search_vals)
+            data['logic_operators'] = logic_operators
+            data['compare_operators'] = compare_operators
+            data['search_vals'] = search_vals
         else:
             data['entries'] = selected_model.fetch_all()
             data['pages'] = selected_model.get_pages()

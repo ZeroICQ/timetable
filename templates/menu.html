@@ -1,32 +1,51 @@
-{% macro inser_search_field(name, value='', type='text', size=20) -%}
-    <input type="{{ type }}" name="{{ name }}" value="{{
-        value|e }}" size="{{ size }}">
-{%- endmacro %}
+{% macro insert_search_field(search_field=0, search_vals='', logic_operator=0, compare_operator=0) %}
+    <div class="search_field_parameters">
+      <div class="form-group">
+        <label>Поле</label>
+        <select name='search_field' class="form-control">
+          {% for option in fields_titles %}
+            <option {% if loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Значение</label>
+        <div class="form-row">
+          <div class="col-3">
+            <select name="logic_operator" class="form-control">
+              {% for operator in logic_search_operators_list %}
+                <option {% if loop.index0 == logic_operator|int %} selected {% endif %} value="{{ loop.index0 }}">{{operator}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col">
+            <select name="compare_operator" class="form-control">
+              {% for operator in compare_search_operators_list %}
+                <option {% if loop.index0 == compare_operator|int %} selected {% endif %}  value="{{ loop.index0 }}">{{operator}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-7">
+            <input name="search_val" type="search" class="form-control" value="{{ search_vals }}">
+          </div>
+        </div>
+      </div>
+      <button type="button" class="add_search_field btn btn-success"><span class="fa fa-plus"></span></button>
+      <button type="button" class="remove_search_field btn btn-danger"><span class="fa fa-minus"></span></button>
+    </div>
+{% endmacro %}
 
 <!--Поиск-->
 <form>
   <div id="search_fields_container">
-    {% set first_search_field = 1 %}
-    {% for search_field in search_fields or first_search_field %}
-      {% set first_search_field = 0 %}
-      <div class="search_field_parameters">
-        <div class="form-group">
-          <label>Поле</label>
-          <select name='search_field' class="form-control">
-            {% for option in fields_titles %}
-              <option {% if loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Значение</label>
-          <input name="search_val" type="search" class="form-control" value="{{ search_vals[loop.index0] }}">
-        </div>
-        <button type="button" class="add_search_field btn btn-success"><span class="fa fa-plus"></span></button>
-        <button type="button" class="remove_search_field btn btn-danger"><span class="fa fa-minus"></span></button>
-      </div>
-    {% endfor %}
+    {% if not search_fields %}
+      {{insert_search_field()}}
+    {% else %}
+      {% for search_field in search_fields %}
+        {{insert_search_field(search_field, search_vals[loop.index0], logic_operators[loop.index0], compare_operators[loop.index0]) }}
+      {% endfor %}
+    {% endif %}
   </div>
   <input type="submit" value="Искать" class="form-control btn btn-primary">
 
