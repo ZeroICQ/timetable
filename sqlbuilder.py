@@ -23,6 +23,7 @@ class SQLBaseSelect(SQLBaseBuilder):
         self.left_joins = []
         self.from_table = target_table
         self.sort_field = None
+        self.sort_order = None
 
     def add_selected_fields(self, query):
         first = True
@@ -84,8 +85,11 @@ class SQLSelect(SQLBaseSelect):
         return query
 
     def add_sort(self, query):
-        if self.sort_field:
+        if self.sort_field and 0 <= self.sort_field < len(self.fields):
             query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
+
+            if self.sort_order:
+                query += self.sort_order + ' '
         return query
 
     @property

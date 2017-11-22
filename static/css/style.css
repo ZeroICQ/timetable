@@ -1,10 +1,11 @@
 .field_title {
   color: black;
-
-
 }
 
 .field_title:hover {
-  color: black;
-  text-decoration: none;
+  color: grey;
+}
+
+.field_title.active {
+  color: red;
 }

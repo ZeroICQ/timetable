@@ -12,27 +12,27 @@
       <div class="form-group">
         <label>Значение</label>
         <div class="form-row">
-          <div class="col-3">
-            <select name="logic_operator" class="form-control">
+          <div class="col">
+            <select name="logic_operator" class="form-control pl-0">
               {% for operator in logic_search_operators_list %}
                 <option {% if loop.index0 == logic_operator|int %} selected {% endif %} value="{{ loop.index0 }}">{{operator}}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col">
-            <select name="compare_operator" class="form-control">
+            <select name="compare_operator" class="form-control pl-0">
               {% for operator in compare_search_operators_list %}
                 <option {% if loop.index0 == compare_operator|int %} selected {% endif %}  value="{{ loop.index0 }}">{{operator}}</option>
               {% endfor %}
             </select>
           </div>
-          <div class="col-7">
-            <input name="search_val" type="search" class="form-control" value="{{ search_vals }}">
+          <div class="col-5">
+            <input name="search_val" type="search" class="form-control pl-0 pr-0" value="{{ search_vals }}">
           </div>
         </div>
       </div>
-      <button type="button" class="add_search_field btn btn-success"><span class="fa fa-plus"></span></button>
-      <button type="button" class="remove_search_field btn btn-danger"><span class="fa fa-minus"></span></button>
+      <button type="button" class="add_search_field btn btn-success btn-sm"><span class="fa fa-plus"></span></button>
+      <button type="button" class="remove_search_field btn btn-danger btn-sm"><span class="fa fa-minus"></span></button>
     </div>
 {% endmacro %}
 

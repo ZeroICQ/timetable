@@ -1,4 +1,4 @@
-def mt_int(lbound):
+def ge_int(lbound):
     def f(val):
         val = int(val)
         if val < lbound:
@@ -6,3 +6,12 @@ def mt_int(lbound):
 
         return val
     return f
+
+
+def sort_order(val):
+    val = str(val)
+    val = val.upper()
+    if val not in ['ASC', 'DESC']:
+        raise ValueError
+
+    return val

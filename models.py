@@ -85,9 +85,11 @@ class BaseModel:
             field.select_col(sql)
         return sql
 
-    def fetch_all(self):
+    def fetch_all(self, sort_field, sort_order):
         cur = get_cursor()
         sql = self.select_all()
+        sql.sort_field = sort_field
+        sql.sort_order = sort_order
         sql.execute(cur)
         return cur.fetchall()
 
@@ -100,11 +102,12 @@ class BaseModel:
                 if param[1]:
                     sql.add_where_param(BaseCondition(param[0], param[1], param[2], param[3]))
 
-    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field):
+    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field, sort_order):
         cur = get_cursor()
         sql = self.select_all()
         self.add_criteria(fields, vals, logic_operators, compare_operators, sql)
         sql.sort_field = sort_field
+        sql.sort_order = sort_order
         sql.execute(cur)
         return cur.fetchall()
 

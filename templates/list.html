@@ -12,7 +12,34 @@
         <thead>
           {% for title in fields_titles %}
             <th>
-              <a href="{{ modify_query(sort=loop.index0) }}" class="field_title">{{ title }}</a>
+              {% set link = modify_query(sort=loop.index0, sort_order='ASC') %}
+
+              {% if sort_field is defined and sort_field == loop.index0  %}
+                {% set sort_curr_field = true %}
+              {% else %}
+                {% set sort_curr_field = false %}
+              {% endif %}
+
+              {% if sort_curr_field %}
+                {% if sort_order is defined and sort_order == 'DESC' %}
+                  {% set link = modify_query(sort_order='ASC') %}
+                {% else %}
+                  {% set link = modify_query(sort_order='DESC') %}
+                {% endif %}
+              {% endif %}
+
+              <a href="{{ link }}" class="field_title {% if sort_field is defined and  sort_field == loop.index0  %} active {% endif %}">
+                {{ title }}
+              </a>
+              {% if sort_curr_field %}
+                {% if sort_order is defined and sort_order == 'DESC' %}
+                  {% set link = modify_query(sort_order='ASC') %}
+                  <i class="fa fa-sort-desc" aria-hidden="true"></i>
+                {% else %}
+                  {% set link = modify_query(sort_order='DESC') %}
+                  <i class="fa fa-sort-asc" aria-hidden="true"></i>
+                {% endif %}
+              {% endif %}
             </th>
           {% endfor %}
         </thead>
