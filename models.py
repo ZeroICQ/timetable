@@ -100,10 +100,11 @@ class BaseModel:
                 if param[1]:
                     sql.add_where_param(BaseCondition(param[0], param[1], param[2], param[3]))
 
-    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators):
+    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field):
         cur = get_cursor()
         sql = self.select_all()
         self.add_criteria(fields, vals, logic_operators, compare_operators, sql)
+        sql.sort_field = sort_field
         sql.execute(cur)
         return cur.fetchall()
 

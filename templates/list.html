@@ -12,7 +12,7 @@
         <thead>
           {% for title in fields_titles %}
             <th>
-              {{ title }}
+              <a href="{{ modify_query(sort=loop.index0) }}" class="field_title">{{ title }}</a>
             </th>
           {% endfor %}
         </thead>

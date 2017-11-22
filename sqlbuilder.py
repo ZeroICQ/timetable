@@ -22,6 +22,7 @@ class SQLBaseSelect(SQLBaseBuilder):
         super().__init__('SELECT ')
         self.left_joins = []
         self.from_table = target_table
+        self.sort_field = None
 
     def add_selected_fields(self, query):
         first = True
@@ -82,8 +83,14 @@ class SQLSelect(SQLBaseSelect):
             query += 'OFFSET ? ROWS FETCH FIRST ? ROWS ONLY '
         return query
 
+    def add_sort(self, query):
+        if self.sort_field:
+            query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
+        return query
+
     @property
     def query(self):
         compiled_query = super().query
+        compiled_query = self.add_sort(compiled_query)
         compiled_query = self.add_offset_fetch(compiled_query)
         return compiled_query

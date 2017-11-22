@@ -65,6 +65,8 @@ def index(selected_table=-1):
 
         pagination_choice = request.args.get('pagination_choice', 0, type=misc.mt_int(0))
         page = request.args.get('page', 1, type=misc.mt_int(1))
+        sort_field = request.args.get('sort', None, type=misc.mt_int(0))
+        data['sort_field'] = sort_field
 
         selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
         data['page'] = page
@@ -73,7 +75,8 @@ def index(selected_table=-1):
         if search_fields and search_vals:
             data['search_vals'] = search_vals
             data['search_fields'] = search_fields
-            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators, compare_operators)
+            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
+                                                                   compare_operators, sort_field)
             data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
             data['logic_operators'] = logic_operators
             data['compare_operators'] = compare_operators
@@ -84,4 +87,4 @@ def index(selected_table=-1):
 
     return render_template('list.html', **data)
 
-app.run(debug=True)
+#app.run(debug=True)
