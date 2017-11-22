@@ -9,3 +9,8 @@
 .field_title.active {
   color: red;
 }
+
+.modified {
+  border-radius: 5px;
+  border:#FF0000 1px solid;
+}

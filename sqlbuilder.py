@@ -85,7 +85,7 @@ class SQLSelect(SQLBaseSelect):
         return query
 
     def add_sort(self, query):
-        if self.sort_field and 0 <= self.sort_field < len(self.fields):
+        if self.sort_field is not None and 0 <= self.sort_field < len(self.fields):
             query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
 
             if self.sort_order:
