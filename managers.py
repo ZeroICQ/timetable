@@ -1,6 +1,6 @@
 import fdb
 import flask
-from models import BaseModel
+from models import BasicModel
 from sqlbuilder import SQLSelect
 
 
@@ -26,7 +26,7 @@ def close_db(error):
 
 
 class BaseManager:
-    def __init__(self, model: BaseModel):
+    def __init__(self, model: BasicModel):
         self.model = model
 
 

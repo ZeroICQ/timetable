@@ -39,11 +39,11 @@
 <!--Поиск-->
 <form>
   <div id="search_fields_container">
-    {% if not search_fields %}
+    {% if not query_params['search_fields'] %}
       {{insert_search_field()}}
     {% else %}
-      {% for search_field in search_fields %}
-        {{insert_search_field(search_field, search_vals[loop.index0], logic_operators[loop.index0], compare_operators[loop.index0]) }}
+      {% for search_field in query_params['search_fields'] %}
+        {{insert_search_field(search_field, query_params['search_vals'][loop.index0], query_params['logic_operators'][loop.index0], query_params['compare_operators'][loop.index0]) }}
       {% endfor %}
     {% endif %}
   </div>
@@ -60,11 +60,13 @@
     <label for="pagination_choice">Показать на странице</label>
     <select id="pagination_choice" name='pagination_choice' class="form-control">
       {% for option in pagination_choices %}
-        <option {% if pagination_choice is defined and loop.index0 == pagination_choice %} selected {% endif %}#} value="{{ loop.index0 }}">{{ option }}</option>
+        <option {% if query_params['pagination_choice'] is defined and loop.index0 == query_params['pagination_choice'] %} selected {% endif %} value="{{ loop.index0 }}">
+          {{ option }}
+        </option>
       {% endfor %}
     </select>
     <input type="submit" value="Показать" class="form-control btn btn-primary">
     </div>
-  <input type="hidden" name="sort" value="{{ sort_field }}">
-  <input type="hidden" name="sort_order" value="{{ sort_order }}">
+  <input type="hidden" name="sort" value="{{ query_params['sort_field'] }}">
+  <input type="hidden" name="sort_order" value="{{ query_params['sort_order'] }}">
 </form>

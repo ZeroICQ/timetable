@@ -12,7 +12,7 @@
         <thead>
           {% for title in fields_titles %}
             <th>
-              {% set link = modify_query(sort=loop.index0, sort_order='ASC') %}
+              {% set link = modify_query(query_params, sort=loop.index0, sort_order='ASC') %}
 
               {% if sort_field is defined and sort_field == loop.index0  %}
                 {% set sort_curr_field = true %}
@@ -21,10 +21,10 @@
               {% endif %}
 
               {% if sort_curr_field %}
-                {% if sort_order is defined and sort_order == 'DESC' %}
-                  {% set link = modify_query(sort_order='ASC') %}
+                {% if query_params['sort_order'] is defined and query_params['sort_order'] == 'DESC' %}
+                  {% set link = modify_query(query_params, sort_order='ASC') %}
                 {% else %}
-                  {% set link = modify_query(sort_order='DESC') %}
+                  {% set link = modify_query(query_params, sort_order='DESC') %}
                 {% endif %}
               {% endif %}
 
@@ -32,11 +32,9 @@
                 {{ title }}
               </a>
               {% if sort_curr_field %}
-                {% if sort_order is defined and sort_order == 'DESC' %}
-                  {% set link = modify_query(sort_order='ASC') %}
+                {% if query_params['sort_order'] is defined and query_params['sort_order'] == 'DESC' %}
                   <i class="fa fa-sort-desc" aria-hidden="true"></i>
                 {% else %}
-                  {% set link = modify_query(sort_order='DESC') %}
                   <i class="fa fa-sort-asc" aria-hidden="true"></i>
                 {% endif %}
               {% endif %}
@@ -50,23 +48,29 @@
             <td>
               {{ field }}
             </td>
-          {% endfor%}
+          {% endfor %}
         </tr>
         {% endfor %}
       </table>
 
-      <nav aria-label="Page navigation example">
+      <nav aria-label="Page navigation">
         <ul class="pagination">
           <li class="page-item">
-            <a class="page-link" href="{{modify_query(page=[1, page-1]|max_val)}}" aria-label="Previous">
+            <a class="page-link" href="{{modify_query(query_params, page=[1, query_params['page']-1]|max_val)}}" aria-label="Previous">
               <span aria-hidden="true">&laquo;</span>
               <span class="sr-only">Previous</span>
             </a>
           </li>
-          {% for i in range(pages) %}
-            <li class="page-item {% if page is defined and  page == loop.index  %} active {% endif %}"><a class="page-link" href="{{modify_query(page=loop.index)}}">{{ loop.index }}</a></li>
-          {% endfor %}
-            <a class="page-link" href="{{modify_query(page=[pages, page+1]|min_val)}}" aria-label="Next">
+
+            {% for i in range(pages) %}
+              <li class="page-item {% if query_params['page'] is defined and query_params['page'] == loop.index  %} active {% endif %}">
+                <a class="page-link" href="{{modify_query(query_params, page=loop.index)}}">
+                  {{ loop.index }}
+                </a>
+              </li>
+            {% endfor %}
+
+            <a class="page-link" href="{{modify_query(query_params, page=[pages, query_params['page']+1]|min_val)}}" aria-label="Next">
               <span aria-hidden="true">&raquo;</span>
               <span class="sr-only">Next</span>
             </a>

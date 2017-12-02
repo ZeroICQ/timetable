@@ -3,7 +3,7 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
 from sqlbuilder import SQLSelect, SQLCountAll
 from math import ceil
-from conditions import BaseCondition
+from conditions import BasicCondition
 
 
 def get_db():
@@ -33,7 +33,7 @@ def close_db(error):
         flask.g.fb_db.close()
 
 
-class BaseModel:
+class BasicModel:
     title = None
 
     def __init__(self):
@@ -100,7 +100,7 @@ class BaseModel:
         if len(fields) == len(vals):
             for param in zip(fields, vals, logic_operators, compare_operators):
                 if param[1]:
-                    sql.add_where_param(BaseCondition(param[0], param[1], param[2], param[3]))
+                    sql.add_where_param(BasicCondition(param[0], param[1], param[2], param[3]))
 
     def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field, sort_order):
         cur = get_cursor()
@@ -112,7 +112,7 @@ class BaseModel:
         return cur.fetchall()
 
 
-class AudienceModel(BaseModel):
+class AudienceModel(BasicModel):
     title = 'Аудитории'
 
     def __init__(self):
@@ -122,7 +122,7 @@ class AudienceModel(BaseModel):
         self.name = StringField(title='Номер', col_name='name')
 
 
-class GroupsModel(BaseModel):
+class GroupsModel(BasicModel):
     title = 'Группы'
 
     def __init__(self):
@@ -132,7 +132,7 @@ class GroupsModel(BaseModel):
         self.name = StringField(title='Группа', col_name='name')
 
 
-class LessonsModel(BaseModel):
+class LessonsModel(BasicModel):
     title = 'Пары'
 
     def __init__(self):
@@ -143,7 +143,7 @@ class LessonsModel(BaseModel):
         self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
 
 
-class LessonTypesModel(BaseModel):
+class LessonTypesModel(BasicModel):
     title = 'Тип пары'
 
     def __init__(self):
@@ -153,7 +153,7 @@ class LessonTypesModel(BaseModel):
         self.name = StringField(title='Название', col_name='name')
 
 
-class SchedItemsModel(BaseModel):
+class SchedItemsModel(BasicModel):
     title = 'Расписание'
 
     def __init__(self):
@@ -169,7 +169,7 @@ class SchedItemsModel(BaseModel):
         self.weekday = ForeignKeyField(col_name='weekday_id', target_table='weekdays', target_fields=(('name', 'День недели'),))
 
 
-class SubjectsModel(BaseModel):
+class SubjectsModel(BasicModel):
     title = 'Предметы'
 
     def __init__(self):
@@ -179,7 +179,7 @@ class SubjectsModel(BaseModel):
         self.name = StringField(title='Предмет', col_name='name')
 
 
-class SubjectGroupModel(BaseModel):
+class SubjectGroupModel(BasicModel):
     title = 'Учебный план'
 
     def __init__(self):
@@ -189,7 +189,7 @@ class SubjectGroupModel(BaseModel):
         self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
 
 
-class SubjectTeacherModel(BaseModel):
+class SubjectTeacherModel(BasicModel):
     title = 'Нагрузка учителя'
 
     def __init__(self):
@@ -199,7 +199,7 @@ class SubjectTeacherModel(BaseModel):
         self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
 
 
-class TeachersModel(BaseModel):
+class TeachersModel(BasicModel):
     title = 'Учителя'
 
     def __init__(self):
@@ -209,7 +209,7 @@ class TeachersModel(BaseModel):
         self.name = StringField('ФИО', col_name='name')
 
 
-class WeekdaysModel(BaseModel):
+class WeekdaysModel(BasicModel):
     title = 'Дни недели'
 
     def __init__(self):

@@ -13,7 +13,7 @@ class SQLBaseBuilder:
         self.conditions.append(cond)
 
     def execute(self, cur):
-        params = [cond.val for cond in self.conditions ]
+        params = [cond.val for cond in self.conditions]
         return cur.execute(self.query, (params + list(self.pagination)))
 
 
@@ -26,16 +26,7 @@ class SQLBaseSelect(SQLBaseBuilder):
         self.sort_order = None
 
     def add_selected_fields(self, query):
-        first = True
-        for field in self.fields:
-            if first:
-                first = False
-            else:
-                query += ', '
-            query += field
-
-        query += ' '
-        return query
+        return query + ', '.join(self.fields) + ' '
 
     def add_field(self, field, table=None):
         if table is None:
@@ -53,8 +44,12 @@ class SQLBaseSelect(SQLBaseBuilder):
         compiled_query = self.add_selected_fields(compiled_query)
         compiled_query += 'from ' + self.from_table.table_name + ' '
         for field in self.left_joins:
-            compiled_query += 'LEFT JOIN {0} on {3}.{1}={0}.{2} '.format(field.target_table, field.col_name,
-                                                                         field.target_pk, self.from_table.table_name)
+            compiled_query += 'LEFT JOIN {target_table} on {from_table}.{col_name}={target_table}.{target_pk} '.format(
+                target_table=field.target_table,
+                col_name=field.col_name,
+                target_pk=field.target_pk,
+                from_table=self.from_table.table_name
+            )
         if self.conditions:
             compiled_query += "WHERE "
 
@@ -68,7 +63,7 @@ class SQLBaseSelect(SQLBaseBuilder):
             else:
                 compiled_query += cond.logic_operator + ' '
 
-            compiled_query += "{0} {1} ? ".format(self.fields[cond.field], cond.compare_operator)
+            compiled_query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
 
         return compiled_query
 

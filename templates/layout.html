@@ -11,17 +11,18 @@
 </head>
 <body>
   {% with errors = get_flashed_messages(category_filter=["error"]) %}
-  {% if errors %}
-  <div class="alert-message block-message error">
-    <a class="close" href="#">×</a>
-    <ul>
-      {%- for msg in errors %}
-      <li>{{ msg }}</li>
-      {% endfor -%}
-    </ul>
-  </div>
-  {% endif %}
+    {% if errors %}
+    <div class="alert-message block-message error">
+      <a class="close" href="#">×</a>
+      <ul>
+        {%- for msg in errors %}
+        <li>{{ msg }}</li>
+        {% endfor -%}
+      </ul>
+    </div>
+    {% endif %}
   {% endwith %}
+
   <div class="container-fluid">
     <h1><a href="/">TimeTabletron3000</a></h1>
     {% block body %}{% endblock %}

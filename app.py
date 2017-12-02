@@ -4,7 +4,7 @@ from flask import render_template
 import models
 import misc
 import jinja_helpers
-from conditions import BaseCondition
+from conditions import BasicCondition
 
 app = Flask(__name__)
 jinja_helpers.register_helpers(app)
@@ -39,55 +39,61 @@ def get_pagination_choices():
 
 @app.route("/<int:selected_table>/")
 @app.route("/")
+@misc.templated('list.html')
 def index(selected_table=-1):
     data = {}
+    query_params = {}
+    data['query_params'] = query_params
+
     tables = get_tables()
 
     data['tables_titles'] = [table.title for table in tables]
     pagination_choices = get_pagination_choices()
     data['pagination_choices'] = pagination_choices
 
-    if 0 <= selected_table < len(tables):
-        data['selected_table'] = selected_table
+    if not (0 <= selected_table < len(tables)):
+        return data
 
-        selected_model = tables[selected_table]()
+    data['selected_table'] = selected_table
 
-        data['fields_titles'] = selected_model.fields_titles
+    selected_model = tables[selected_table]()
 
-        search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
-        search_vals = request.args.getlist('search_val')
+    data['fields_titles'] = selected_model.fields_titles
 
-        logic_operators = request.args.getlist('logic_operator', type=misc.ge_int(0))
-        compare_operators = request.args.getlist('compare_operator', type=misc.ge_int(0))
+    search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
+    search_vals = request.args.getlist('search_val')
 
-        data['logic_search_operators_list'] = BaseCondition.logic_operators
-        data['compare_search_operators_list'] = BaseCondition.compare_operators
+    logic_operators = request.args.getlist('logic_operator', type=misc.ge_int(0))
+    compare_operators = request.args.getlist('compare_operator', type=misc.ge_int(0))
 
-        pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
-        page = request.args.get('page', 1, type=misc.ge_int(1))
-        sort_field = request.args.get('sort', None, type=misc.ge_int(0))
-        sort_order = request.args.get('sort_order', None, type=misc.sort_order)
+    data['logic_search_operators_list'] = BasicCondition.logic_operators
+    data['compare_search_operators_list'] = BasicCondition.compare_operators
 
-        data['sort_field'] = sort_field
-        data['sort_order'] = sort_order
+    pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
+    page = request.args.get('page', 1, type=misc.ge_int(1))
+    sort_field = request.args.get('sort', None, type=misc.ge_int(0))
+    sort_order = request.args.get('sort_order', None, type=misc.sort_order)
 
-        selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
-        data['page'] = page
-        data['pagination_choice'] = pagination_choice
+    query_params['sort_field'] = sort_field
+    query_params['sort_order'] = sort_order
 
-        if search_fields and search_vals:
-            data['search_vals'] = search_vals
-            data['search_fields'] = search_fields
-            data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
-                                                                   compare_operators, sort_field, sort_order)
-            data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
-            data['logic_operators'] = logic_operators
-            data['compare_operators'] = compare_operators
-            data['search_vals'] = search_vals
-        else:
-            data['entries'] = selected_model.fetch_all(sort_field, sort_order)
-            data['pages'] = selected_model.get_pages()
+    selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
+    query_params['page'] = page
+    query_params['pagination_choice'] = pagination_choice
 
-    return render_template('list.html', **data)
+    if search_fields and search_vals:
+        query_params['search_fields'] = search_fields
+        query_params['search_vals'] = search_vals
+        data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
+                                                               compare_operators, sort_field, sort_order)
+        data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
+        query_params['logic_operators'] = logic_operators
+        query_params['compare_operators'] = compare_operators
+        query_params['search_vals'] = search_vals
+    else:
+        data['entries'] = selected_model.fetch_all(sort_field, sort_order)
+        data['pages'] = selected_model.get_pages()
 
-#app.run(debug=True)
+    return data
+
+app.run(debug=True)

@@ -1,4 +1,4 @@
-class BaseCondition:
+class BasicCondition:
     compare_operators = ('=', '!=', '>', '>=', '<', '<=', 'LIKE')
     logic_operators = ['AND', 'OR']
 
