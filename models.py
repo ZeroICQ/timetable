@@ -207,7 +207,7 @@ class TeachersModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'teachers'
-        self.id = PKField()
+        self.pk = PKField()
         self.name = StringField('ФИО', col_name='name')
 
 
@@ -217,6 +217,6 @@ class WeekdaysModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'weekdays'
-        self.id = PKField()
+        self.pk = PKField()
         self.name = StringField('Название', col_name='name')
         self.order_number = IntegerField('Порядковый номер', col_name='order_number')
