@@ -262,34 +262,20 @@ INSERT INTO SCHED_ITEMS (ID,LESSON_ID,SUBJECT_ID,AUDIENCE_ID,GROUP_ID,TEACHER_ID
 COMMIT WORK;
 /****************** GENERATORS ********************/
 
-
-
 RECREATE GENERATOR AUDIENCES_GEN
-  START WITH 1;
-
--- set term ^;
--- execute block    
--- as  
--- declare i int = 0;    
--- declare temp int = 0;
--- begin  
-  -- i = (select max(id) from AUDIENCES);  
-  -- temp = gen_id(AUDIENCES_GEN,:i);  --- set to i
--- end ^ 
--- set term ; ^
-
+  START WITH 16;
 RECREATE GENERATOR GROUPS_GEN
-  START WITH 1;
+  START WITH 2;
 RECREATE GENERATOR LESSONS_GEN
-  START WITH 1;
+  START WITH 8;
 RECREATE GENERATOR LESSON_TYPES_GEN
-  START WITH 1;
+  START WITH 4;
 RECREATE GENERATOR SCHED_ITEMS_GEN
-  START WITH 1;
+  START WITH 24;
 RECREATE GENERATOR SUBJECTS_GEN
-  START WITH 1;
+  START WITH 12;
 RECREATE GENERATOR TEACHERS_GEN
-  START WITH 1;
+  START WITH 12;
 
 /******************** TRIGGERS ********************/
 
