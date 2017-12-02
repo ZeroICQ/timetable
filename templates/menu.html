@@ -2,7 +2,7 @@
     <div class="search_field_parameters">
       <div class="form-group">
         <label>Поле</label>
-        <select name='search_field' class="form-control">
+        <select name='search_field' class="form-control form-control-sm">
           {% for option in fields_titles %}
             <option {% if loop.index0 == search_field|int %} selected {% endif %} value="{{ loop.index0 }}">{{ option }}</option>
           {% endfor %}
@@ -13,26 +13,29 @@
         <label>Значение</label>
         <div class="form-row">
           <div class="col">
-            <select name="logic_operator" class="form-control pl-0">
+            <select name="logic_operator" class="form-control form-control-sm pl-0">
               {% for operator in logic_search_operators_list %}
                 <option {% if loop.index0 == logic_operator|int %} selected {% endif %} value="{{ loop.index0 }}">{{operator}}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col">
-            <select name="compare_operator" class="form-control pl-0">
+            <select name="compare_operator" class="form-control form-control-sm pl-0">
               {% for operator in compare_search_operators_list %}
                 <option {% if loop.index0 == compare_operator|int %} selected {% endif %}  value="{{ loop.index0 }}">{{operator}}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-5">
-            <input name="search_val" type="search" class="form-control pl-0 pr-0" value="{{ search_val }}">
+            <input name="search_val" type="search" class="form-control form-control-sm pl-0 pr-0" value="{{ search_val }}">
           </div>
         </div>
+
       </div>
-      <button type="button" class="add_search_field btn btn-success btn-sm"><span class="fa fa-plus"></span></button>
-      <button type="button" class="remove_search_field btn btn-danger btn-sm"><span class="fa fa-minus"></span></button>
+      <div class="form-group">
+        <button type="button" class="add_search_field btn btn-success btn-sm"><span class="fa fa-plus"></span></button>
+        <button type="button" class="remove_search_field btn btn-danger btn-sm"><span class="fa fa-minus"></span></button>
+      </div>
     </div>
 {% endmacro %}
 
@@ -47,7 +50,7 @@
       {% endfor %}
     {% endif %}
   </div>
-  <input type="submit" value="Искать" class="form-control btn btn-primary">
+  <input type="submit" value="Искать" class="form-control form-control-sm btn btn-primary">
 
 
 <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
@@ -60,14 +63,14 @@
 
   <div class="form-group">
     <label for="pagination_choice">Показать на странице</label>
-    <select id="pagination_choice" name='pagination_choice' class="form-control">
+    <select id="pagination_choice" name='pagination_choice' class="form-control form-control-sm">
       {% for option in pagination_choices %}
         <option {% if query_params['pagination_choice'] is defined and loop.index0 == query_params['pagination_choice'] %} selected {% endif %} value="{{ loop.index0 }}">
           {{ option }}
         </option>
       {% endfor %}
     </select>
-    <input type="submit" value="Показать" class="form-control btn btn-primary">
+    <input type="submit" value="Показать" class="form-control form-control-sm btn btn-primary">
     </div>
   <input type="hidden" name="sort" value="{{ query_params['sort_field'] }}">
   <input type="hidden" name="sort_order" value="{{ query_params['sort_order'] }}">

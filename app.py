@@ -10,7 +10,7 @@ app = Flask(__name__)
 jinja_helpers.register_helpers(app)
 
 #TODO: investigate crashes
-#@app.teardown_appcontext
+# @app.teardown_appcontext
 # def on_teardown(error):
 #     models.close_db(error)
 
@@ -93,6 +93,29 @@ def index(selected_table=-1):
     else:
         data['entries'] = selected_model.fetch_all(sort_field, sort_order)
         data['pages'] = selected_model.get_pages()
+
+    return data
+
+
+@app.route("/<int:table>/<int:pk>", methods=['GET', 'POST'])
+@misc.templated('view.html')
+def update(table=None, pk=None):
+    data = {}
+    tables = tables = get_tables()
+
+    if not (0 <= table < len(tables)):
+        return data
+
+    model = tables[table]()
+    fields = model.mutable_fields
+    data['fields'] = fields
+
+    if request.method == 'POST':
+        values = [request.form.get(str(i), None) for i in range(len(fields))]
+        model.update_fields(fields, values, pk)
+
+
+    data['values'] = model.fetch_raw_by_pk(pk)
 
     return data
 

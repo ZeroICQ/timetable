@@ -39,6 +39,9 @@
               {% endif %}
             </th>
           {% endfor %}
+            <th>
+              Действия
+            </th>
         </thead>
 
         {% for entry in entries %}
@@ -48,6 +51,11 @@
               {{ field }}
             </td>
           {% endfor %}
+            <td>
+              <a href="{{ url_for('update', table=selected_table, pk=entry[0]) }}" target="_blank">
+                Редактировать
+              </a>
+            </td>
         </tr>
         {% endfor %}
       </table>

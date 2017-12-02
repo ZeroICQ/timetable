@@ -8,7 +8,7 @@ class BasicCondition:
         self._compare_operator = 0
         self.field = field
         self.val = val
-        self.logic_operator = logic_operator if 0 <= logic_operator  < len(self.logic_operators) else 0
+        self.logic_operator = logic_operator if 0 <= logic_operator < len(self.logic_operators) else 0
         self.compare_operator = compare_operator if 0 <= compare_operator < len(self.compare_operators) else 0
 
     @property
@@ -26,3 +26,11 @@ class BasicCondition:
     @compare_operator.setter
     def compare_operator(self, val):
         self._compare_operator = val
+
+
+class CustomCondition():
+    def __init__(self, field_name, val, compare_operator, logic_operator='AND'):
+        self.field_name = field_name
+        self.val = val
+        self.compare_operator = compare_operator
+        self.logic_operator = logic_operator

@@ -1,9 +1,9 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
-from sqlbuilder import SQLSelect, SQLCountAll
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate
 from math import ceil
-from conditions import BasicCondition
+from conditions import BasicCondition, CustomCondition
 
 
 def get_db():
@@ -22,9 +22,10 @@ def get_db():
 
 
 def get_cursor():
-    if not hasattr(flask.g, 'fb_cur'):
-        flask.g.fb_cur = get_db().cursor()
-    return flask.g.fb_cur
+    # if not hasattr(flask.g, 'fb_cur'):
+    #     flask.g.fb_cur = get_db().cursor()
+    # return flask.g.fb_cur
+    return get_db().cursor()
 
 
 def close_db(error):
@@ -39,10 +40,15 @@ class BasicModel:
     def __init__(self):
         self.table_name = None
         self.pagination = None
+        self.pk = PKField()
 
     @property
     def fields(self):
         return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
+
+    @property
+    def mutable_fields(self):
+        return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField) and not isinstance(val, PKField)]
 
     @property
     def fields_titles(self):
@@ -61,7 +67,7 @@ class BasicModel:
     def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
-        self.select_all(sql)
+        self.select_all_fields(sql)
         self.add_criteria(fields, values, logic_operators, compare_operators, sql)
 
         sql.execute(cur)
@@ -74,7 +80,7 @@ class BasicModel:
 
         return ceil(rows/on_page)
 
-    def select_all(self, sql=None):
+    def select_all_fields(self, sql=None):
         if sql is None:
             sql = SQLSelect(target_table=self)
 
@@ -85,9 +91,20 @@ class BasicModel:
             field.select_col(sql)
         return sql
 
+    def select_all_fields_raw(self, sql=None):
+        if sql is None:
+            sql = SQLSelect(target_table=self)
+
+        if self.pagination is not None:
+            sql.pagination = self.pagination
+
+        for field in self.mutable_fields:
+            field.select_col_raw(sql)
+        return sql
+
     def fetch_all(self, sort_field, sort_order):
         cur = get_cursor()
-        sql = self.select_all()
+        sql = self.select_all_fields()
         sql.sort_field = sort_field
         sql.sort_order = sort_order
         sql.execute(cur)
@@ -104,12 +121,27 @@ class BasicModel:
 
     def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field, sort_order):
         cur = get_cursor()
-        sql = self.select_all()
+        sql = self.select_all_fields()
         self.add_criteria(fields, vals, logic_operators, compare_operators, sql)
         sql.sort_field = sort_field
         sql.sort_order = sort_order
         sql.execute(cur)
         return cur.fetchall()
+
+    def fetch_raw_by_pk(self, pk_val):
+        cur = get_cursor()
+        sql = self.select_all_fields_raw()
+        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql.execute(cur)
+        return cur.fetchone()
+
+    def update_fields(self, fields, values, pk_val):
+        cur = get_cursor()
+        sql = SQLBasicUpdate(self, values)
+        sql = self.select_all_fields_raw(sql)
+        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql.execute(cur)
+        cur.transaction.commit()
 
 
 class AudienceModel(BasicModel):
@@ -160,7 +192,7 @@ class SchedItemsModel(BasicModel):
         super().__init__()
         self.table_name = 'sched_items'
         self.pk = PKField()
-        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),))
+        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),), target_title='Предмет')
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Предмет'),))
         self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences', target_fields=(('name', 'Аудитория'),))
         self.group = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name', 'Группа'),))
