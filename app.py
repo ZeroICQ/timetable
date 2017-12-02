@@ -82,14 +82,14 @@ def index(selected_table=-1):
     query_params['pagination_choice'] = pagination_choice
 
     if search_fields and search_vals:
-        query_params['search_fields'] = search_fields
-        query_params['search_vals'] = search_vals
+        query_params['search_field'] = search_fields
+        query_params['search_val'] = search_vals
         data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
                                                                compare_operators, sort_field, sort_order)
         data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
-        query_params['logic_operators'] = logic_operators
-        query_params['compare_operators'] = compare_operators
-        query_params['search_vals'] = search_vals
+        query_params['logic_operator'] = logic_operators
+        query_params['compare_operator'] = compare_operators
+        query_params['search_val'] = search_vals
     else:
         data['entries'] = selected_model.fetch_all(sort_field, sort_order)
         data['pages'] = selected_model.get_pages()

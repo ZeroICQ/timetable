@@ -1,4 +1,4 @@
-{% macro insert_search_field(search_field=0, search_vals='', logic_operator=0, compare_operator=0) %}
+{% macro insert_search_field(search_field=0, search_val='', logic_operator=0, compare_operator=0) %}
     <div class="search_field_parameters">
       <div class="form-group">
         <label>Поле</label>
@@ -27,7 +27,7 @@
             </select>
           </div>
           <div class="col-5">
-            <input name="search_val" type="search" class="form-control pl-0 pr-0" value="{{ search_vals }}">
+            <input name="search_val" type="search" class="form-control pl-0 pr-0" value="{{ search_val }}">
           </div>
         </div>
       </div>
@@ -39,11 +39,11 @@
 <!--Поиск-->
 <form>
   <div id="search_fields_container">
-    {% if not query_params['search_fields'] %}
+    {% if not query_params['search_field'] %}
       {{insert_search_field()}}
     {% else %}
-      {% for search_field in query_params['search_fields'] %}
-        {{insert_search_field(search_field, query_params['search_vals'][loop.index0], query_params['logic_operators'][loop.index0], query_params['compare_operators'][loop.index0]) }}
+      {% for search_field in query_params['search_field'] %}
+        {{insert_search_field(search_field, query_params['search_val'][loop.index0], query_params['logic_operator'][loop.index0], query_params['compare_operator'][loop.index0]) }}
       {% endfor %}
     {% endif %}
   </div>
@@ -52,7 +52,9 @@
 
 <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
   {% for option in tables_titles %}
-    <a class="nav-link {% if selected_table is defined and loop.index0 == selected_table|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0, pagination_choice=request.args.get('pagination_choice', 0)) }}">{{ option }}</a>
+    <a class="nav-link {% if selected_table is defined and loop.index0 == selected_table|int %} active {% endif %}" href="{{ url_for('index', selected_table=loop.index0, pagination_choice=request.args.get('pagination_choice', 0)) }}">
+      {{ option }}
+    </a>
   {% endfor %}
 </nav>
 
