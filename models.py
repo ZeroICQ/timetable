@@ -185,6 +185,7 @@ class SubjectGroupModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'SUBJECT_GROUP'
+        self.pk = PKField()
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
         self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
 
@@ -194,6 +195,7 @@ class SubjectTeacherModel(BasicModel):
 
     def __init__(self):
         super().__init__()
+        self.pk = PKField()
         self.table_name = 'subject_teacher'
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
         self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
