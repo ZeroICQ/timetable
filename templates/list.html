@@ -12,9 +12,8 @@
         <thead>
           {% for title in fields_titles %}
             <th>
-              {% set link = modify_query(query_params, sort=loop.index0, sort_order='ASC') %}
-
-              {% if sort_field is defined and sort_field == loop.index0  %}
+              {% set link = modify_query(query_params, sort_field=loop.index0, sort_order='ASC') %}
+              {% if query_params['sort_field'] is defined and query_params['sort_field'] == loop.index0  %}
                 {% set sort_curr_field = true %}
               {% else %}
                 {% set sort_curr_field = false %}
@@ -28,7 +27,7 @@
                 {% endif %}
               {% endif %}
 
-              <a href="{{ link }}" class="field_title {% if sort_field is defined and  sort_field == loop.index0  %} active {% endif %}">
+              <a href="{{ link }}" class="field_title {% if query_params['sort_field'] is defined and  query_params['sort_field'] == loop.index0  %} active {% endif %}">
                 {{ title }}
               </a>
               {% if sort_curr_field %}

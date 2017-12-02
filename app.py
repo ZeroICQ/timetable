@@ -71,7 +71,7 @@ def index(selected_table=-1):
 
     pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
     page = request.args.get('page', 1, type=misc.ge_int(1))
-    sort_field = request.args.get('sort', None, type=misc.ge_int(0))
+    sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
     sort_order = request.args.get('sort_order', None, type=misc.sort_order)
 
     query_params['sort_field'] = sort_field
