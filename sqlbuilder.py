@@ -89,6 +89,19 @@ class SQLBasicUpdate(SQLBasicBuilder):
         return query + ', '.join([field + ' = ? ' for field in self.fields])
 
 
+class SQLBasicDelete(SQLBasicBuilder):
+
+    def __init__(self, target_table=None, operation=''):
+        super().__init__('DELETE', target_table)
+
+    @property
+    def query(self):
+        compiled_query = super().query
+        compiled_query += 'from ' + self.target_table.table_name + ' '
+        compiled_query = self.add_selected_conditions(compiled_query)
+        return compiled_query
+
+
 class SQLBasicSelect(SQLBasicBuilder):
     def __init__(self, target_table):
         super().__init__('SELECT', target_table)

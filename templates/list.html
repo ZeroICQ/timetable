@@ -52,8 +52,11 @@
             </td>
           {% endfor %}
             <td>
-              <a href="{{ url_for('update', table=selected_table, pk=entry[0]) }}" target="_blank">
+              <a href="{{ url_for('edit', table=selected_table, pk=entry[0]) }}" target="_blank">
                 Редактировать
+              </a>
+              <a href="{{ url_for('delete', table=selected_table, pk=entry[0]) }}" target="_blank">
+                Удалить
               </a>
             </td>
         </tr>

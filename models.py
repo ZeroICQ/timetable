@@ -1,7 +1,7 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
-from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete
 from math import ceil
 from conditions import BasicCondition, CustomCondition
 
@@ -139,6 +139,13 @@ class BasicModel:
         cur = get_cursor()
         sql = SQLBasicUpdate(self, values)
         sql = self.select_all_fields_raw(sql)
+        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql.execute(cur)
+        cur.transaction.commit()
+
+    def delete_by_id(self, pk_val):
+        cur = get_cursor()
+        sql = SQLBasicDelete(self)
         sql.add_where_equal_param(self.pk.col_name, pk_val)
         sql.execute(cur)
         cur.transaction.commit()

@@ -97,9 +97,9 @@ def index(selected_table=-1):
     return data
 
 
-@app.route("/<int:table>/<int:pk>", methods=['GET', 'POST'])
+@app.route("/<int:table>/edit/<int:pk>", methods=['GET', 'POST'])
 @misc.templated('view.html')
-def update(table=None, pk=None):
+def edit(table=None, pk=None):
     data = {}
     tables = tables = get_tables()
 
@@ -114,9 +114,29 @@ def update(table=None, pk=None):
         values = [request.form.get(str(i), None) for i in range(len(fields))]
         model.update_fields(fields, values, pk)
 
-
     data['values'] = model.fetch_raw_by_pk(pk)
 
     return data
+
+
+@app.route("/<int:table>/delete/<int:pk>", methods=['GET', 'POST'])
+@misc.templated('delete.html')
+def delete(table=None, pk=None):
+    data = {}
+    tables = tables = get_tables()
+
+    if not (0 <= table < len(tables)):
+        return data
+
+    model = tables[table]()
+
+    if request.method == 'POST':
+        model.delete_by_id(pk_val=pk)
+        data['status'] = 'ok'
+    else:
+        data['values'] = model.fetch_raw_by_pk(pk)
+
+    return data
+
 
 app.run(debug=True)
