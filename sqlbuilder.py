@@ -65,7 +65,8 @@ class SQLBasicBuilder:
 class SQLBasicUpdate(SQLBasicBuilder):
     def __init__(self, target_table, values=None):
         super().__init__('UPDATE', target_table)
-        self.values = values
+        #very important check
+        self.values = [value if value else None for value in values]
 
     def execute(self, cur, params=None):
         if params is None:
