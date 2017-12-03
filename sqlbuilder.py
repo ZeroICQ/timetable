@@ -62,9 +62,9 @@ class SQLBasicBuilder:
         return query
 
 
-class SQLBasicUpdate(SQLBasicBuilder):
-    def __init__(self, target_table, values=None):
-        super().__init__('UPDATE', target_table)
+class SQLBasicInsert(SQLBasicBuilder):
+    def __init__(self, target_table=None, values=None, operation='INSERT'):
+        super().__init__(operation=operation, target_table=target_table)
         #very important check
         self.values = [value if value else None for value in values]
 
@@ -74,6 +74,31 @@ class SQLBasicUpdate(SQLBasicBuilder):
         params += self.values
         return super().execute(cur, params)
 
+    def add_field(self, field):
+        self.fields.append(field)
+
+    def add_inserting_fields(self, query):
+        query += '(' + self.target_table.pk.col_name + ', '
+        query += ', '.join(self.fields)
+        # autoincrement
+        query += ') VALUES (null, '
+        query += ', '.join(['?' for field in self.fields])
+        query += ')'
+
+        return query
+
+    @property
+    def query(self):
+        compiled_query = super().query
+        compiled_query += 'INTO ' + self.target_table.table_name + ' '
+        compiled_query = self.add_inserting_fields(compiled_query)
+        return compiled_query
+
+
+class SQLBasicUpdate(SQLBasicInsert):
+    def __init__(self, target_table, values=None):
+        super().__init__(operation='UPDATE', target_table=target_table, values=values)
+
     @property
     def query(self):
         compiled_query = super().query
@@ -82,9 +107,6 @@ class SQLBasicUpdate(SQLBasicBuilder):
         compiled_query = self.add_selected_conditions(compiled_query)
 
         return compiled_query
-
-    def add_field(self, field):
-        self.fields.append(field)
 
     def add_updating_fields(self, query):
         return query + ', '.join([field + ' = ? ' for field in self.fields])

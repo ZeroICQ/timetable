@@ -8,6 +8,9 @@
 
   <div class="col col-md-9">
     {% if selected_table is defined %}
+      <a href="{{ url_for('create', table=selected_table)}}">
+        Создать
+      </a>
       <table class="table table-hover table-bordered table table-responsive-sm text-center">
         <thead>
           {% for title in fields_titles %}

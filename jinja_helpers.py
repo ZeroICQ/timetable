@@ -22,9 +22,9 @@ def modify_query(query_params, **new_values):
 
 
 def markup(f):
-    def wrap(field, val, *args, **kwargs):
+    def wrap(field, val=None, *args, **kwargs):
         params = {
-            'val': val,
+            'val': val if val else '',
             'label': field.title,
             'name': kwargs.get('name', '')
         }

@@ -1,7 +1,7 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
-from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert
 from math import ceil
 from conditions import BasicCondition, CustomCondition
 
@@ -147,6 +147,13 @@ class BasicModel:
         cur = get_cursor()
         sql = SQLBasicDelete(self)
         sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql.execute(cur)
+        cur.transaction.commit()
+
+    def insert(self, values):
+        cur = get_cursor()
+        sql = SQLBasicInsert(self, values=values)
+        sql = self.select_all_fields_raw(sql)
         sql.execute(cur)
         cur.transaction.commit()
 

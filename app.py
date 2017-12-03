@@ -129,6 +129,8 @@ def delete(table=None, pk=None):
         return data
 
     model = tables[table]()
+    fields = model.mutable_fields
+    data['fields'] = fields
 
     if request.method == 'POST':
         model.delete_by_id(pk_val=pk)
@@ -138,5 +140,25 @@ def delete(table=None, pk=None):
 
     return data
 
+
+@app.route("/<int:table>/create", methods=['GET', 'POST'])
+@misc.templated('create.html')
+def create(table=None):
+    data = {}
+    tables = tables = get_tables()
+
+    if not (0 <= table < len(tables)):
+        return data
+
+    model = tables[table]()
+    fields = model.mutable_fields
+    data['fields'] = fields
+
+    if request.method == 'POST':
+        values = [request.form.get(str(i), None) for i in range(len(fields))]
+        model.insert(values)
+        data['status'] = 'ok'
+
+    return data
 
 app.run(debug=True)
