@@ -1,10 +1,11 @@
 from conditions import CustomCondition
+import weakref
 
 
 class SQLBasicBuilder:
     def __init__(self, operation='', target_table=None):
         self.operation = operation
-        self.target_table = target_table
+        self.target_table = weakref.ref(target_table)
         self.fields = []
         self.pagination = ()
         self.conditions = []
