@@ -83,7 +83,7 @@ class SQLBasicInsert(SQLBasicBuilder):
         # autoincrement
         query += ') VALUES (null, '
         query += ', '.join(['?' for field in self.fields])
-        query += ')'
+        query += ') '
 
         return query
 
@@ -92,6 +92,7 @@ class SQLBasicInsert(SQLBasicBuilder):
         compiled_query = super().query
         compiled_query += 'INTO ' + self.target_table.table_name + ' '
         compiled_query = self.add_inserting_fields(compiled_query)
+        compiled_query += ' RETURNING ' + self.target_table.pk.col_name
         return compiled_query
 
 

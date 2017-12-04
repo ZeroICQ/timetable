@@ -155,7 +155,9 @@ class BasicModel:
         sql = SQLBasicInsert(self, values=values)
         sql = self.select_all_fields_raw(sql)
         sql.execute(cur)
+        res = cur.fetchone()
         cur.transaction.commit()
+        return res
 
 
 class AudienceModel(BasicModel):

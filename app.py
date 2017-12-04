@@ -155,7 +155,7 @@ def create(table=None):
 
     if request.method == 'POST':
         values = [request.form.get(str(i), None) for i in range(len(fields))]
-        model.insert(values)
+        data['pk'] = model.insert(values)
         data['status'] = 'ok'
 
     return data

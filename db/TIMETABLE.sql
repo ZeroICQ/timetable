@@ -68,7 +68,6 @@ RECREATE TABLE SUBJECTS
   PRIMARY KEY (ID)
 );
 
-
 RECREATE TABLE TEACHERS
 (
   ID Integer NOT NULL,
@@ -83,6 +82,21 @@ RECREATE TABLE WEEKDAYS
   ORDER_NUMBER Integer NOT NULL,
   PRIMARY KEY (ID),
   UNIQUE (ORDER_NUMBER)
+);
+
+RECREATE TABLE LOG_STATUS
+(
+  ID Integer NOT NULL,
+  NAME Varchar(64) NOT NULL,
+  PRIMARY KEY (ID)
+);
+
+RECREATE TABLE LOG
+(
+  ID Integer NOT NULL,
+  STATUS Integer NOT NULL,
+  TALBE_NAME Varchar(64) NOT NULL,
+  PRIMARY KEY (ID)
 );
 
 COMMIT WORK;
@@ -122,6 +136,9 @@ ALTER TABLE SUBJECT_TEACHER ADD
 ALTER TABLE SUBJECT_TEACHER ADD
   FOREIGN KEY (TEACHER_ID) REFERENCES TEACHERS (ID);
 
+ALTER TABLE LOG ADD
+  FOREIGN KEY (STATUS) REFERENCES LOG_STATUS (ID);
+
 -- COMMIT WORK;
 
 /****************** GENERATORS ********************/
@@ -146,7 +163,8 @@ RECREATE GENERATOR TEACHERS_GEN
   START WITH 0;
 RECREATE GENERATOR SUBJECT_TEACHER_GEN
   START WITH 0;
-
+RECREATE GENERATOR LOG_STATUS_GEN
+  START WITH 0;
 
 /******************** TRIGGERS ********************/
 
@@ -155,7 +173,7 @@ RECREATE TRIGGER AUDIENCES_AUTOINC_ID FOR AUDIENCES ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (AUDIENCES_GEN, 1);
 END^
 SET TERM ; ^
@@ -165,7 +183,7 @@ RECREATE TRIGGER WEEKDAYS_AUTOINC_ID FOR WEEKDAYS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (WEEKDAYS_GEN, 1);
 END^
 SET TERM ; ^
@@ -175,7 +193,7 @@ RECREATE TRIGGER SUBJECT_GROUP_AUTOINC_ID FOR SUBJECT_GROUP ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (SUBJECT_GROUP_GEN, 1);
 END^
 SET TERM ; ^
@@ -185,7 +203,7 @@ RECREATE TRIGGER SUBJECT_TEACHER_AUTOINC_ID FOR SUBJECT_TEACHER ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (SUBJECT_TEACHER_GEN, 1);
 END^
 SET TERM ; ^
@@ -195,7 +213,7 @@ RECREATE TRIGGER GROUPS_AUTOINC_ID FOR GROUPS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (GROUPS_GEN, 1);
 END^
 SET TERM ; ^
@@ -205,7 +223,7 @@ RECREATE TRIGGER LESSONS_AUTOINC_ID FOR LESSONS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (LESSONS_GEN, 1);
 END^
 SET TERM ; ^
@@ -215,7 +233,7 @@ RECREATE TRIGGER LESSON_TYPES_AUTOINC_ID FOR LESSON_TYPES ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (LESSON_TYPES_GEN, 1);
 END^
 SET TERM ; ^
@@ -225,7 +243,7 @@ RECREATE TRIGGER SCHED_ITEMS_AUTOINC_ID FOR SCHED_ITEMS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id(SCHED_ITEMS_GEN, 1);
 END^
 SET TERM ; ^
@@ -235,7 +253,7 @@ RECREATE TRIGGER SUBJECTS_AUTOINC_ID FOR SUBJECTS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id(subjects_gen, 1);
 END^
 SET TERM ; ^
@@ -246,13 +264,27 @@ RECREATE TRIGGER TEACHERS_AUTOINC_ID FOR TEACHERS ACTIVE
 BEFORE INSERT POSITION 1
 AS 
 BEGIN 
-    if (new.id is null ) then
+    if (new.id is null) then
     new.id = gen_id (TEACHERS_GEN, 1);
+END^
+SET TERM ; ^
+
+RECREATE TRIGGER LOG_STATUS_AUTOINC_ID FOR LOG_STATUS ACTIVE
+BEFORE INSERT POSITION 1
+AS 
+BEGIN 
+    if (new.id is null) then
+    new.id = gen_id (LOG_STATUS_GEN, 1);
 END^
 SET TERM ; ^
 
 COMMIT WORK;
 /******************* DATA  *******************/
+
+/******************* LOG_STATUS *******************/
+
+INSERT INTO LOG_STATUS (ID,NAME) values (null, 'DELETED');
+INSERT INTO LOG_STATUS (ID,NAME) values (null, 'MODIFIED');
 
 /******************* AUDIENCES  *******************/
 
