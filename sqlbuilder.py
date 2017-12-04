@@ -101,8 +101,7 @@ class SQLBasicUpdate(SQLBasicInsert):
 
     @property
     def query(self):
-        compiled_query = super().query
-        compiled_query += self.target_table.table_name + ' SET '
+        compiled_query = self.operation + ' ' + self.target_table.table_name + ' SET '
         compiled_query = self.add_updating_fields(compiled_query)
         compiled_query = self.add_selected_conditions(compiled_query)
 

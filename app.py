@@ -131,12 +131,11 @@ def delete(table=None, pk=None):
     model = tables[table]()
     fields = model.mutable_fields
     data['fields'] = fields
+    data['values'] = model.fetch_raw_by_pk(pk)
 
     if request.method == 'POST':
         model.delete_by_id(pk_val=pk)
         data['status'] = 'ok'
-    else:
-        data['values'] = model.fetch_raw_by_pk(pk)
 
     return data
 
