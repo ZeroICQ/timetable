@@ -48,3 +48,8 @@ class ForeignKeyField(BaseField):
 class StringField(BaseField):
     def __init__(self, title=None, col_name=None):
         super().__init__(title, col_name)
+
+
+class TimestampField(BaseField):
+    def __init__(self, title=None, col_name=None):
+        super().__init__(title, col_name)

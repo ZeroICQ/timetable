@@ -51,6 +51,11 @@ def _fk_field(field, val, params=None):
     return '<input name="%(name)s" class="form-control form-control-sm" type="number" value="%(val)s">'
 
 
+@markup
+def _timestamp_field(field, val, params=None):
+    return '<input name="%(name)s" class="form-control form-control-sm" type="datetime" value="%(val)s">'
+
+
 def form_field(field, val='', **kwargs):
     if isinstance(field, fields.StringField):
         return _string_field(field, val, **kwargs)
@@ -58,6 +63,8 @@ def form_field(field, val='', **kwargs):
         return _int_field(field, val, **kwargs)
     elif isinstance(field, fields.ForeignKeyField):
         return _fk_field(field, val, **kwargs)
+    elif isinstance(field, fields.TimestampField):
+        return _timestamp_field(field, val, **kwargs)
     else:
         return field
 

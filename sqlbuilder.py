@@ -57,7 +57,7 @@ class SQLBasicBuilder:
                 query += cond.logic_operator + ' '
 
             query += '{table_name}.{field_name} {operator} ? '.format(
-                table_name=self.target_table.table_name,
+                table_name=self.target_table().table_name,
                 field_name=cond.field_name,
                 operator=cond.compare_operator)
         return query
@@ -79,10 +79,9 @@ class SQLBasicInsert(SQLBasicBuilder):
         self.fields.append(field)
 
     def add_inserting_fields(self, query):
-        query += '(' + self.target_table.pk.col_name + ', '
+        query += '('
         query += ', '.join(self.fields)
-        # autoincrement
-        query += ') VALUES (null, '
+        query += ') VALUES ('
         query += ', '.join(['?' for field in self.fields])
         query += ') '
 
@@ -91,10 +90,23 @@ class SQLBasicInsert(SQLBasicBuilder):
     @property
     def query(self):
         compiled_query = super().query
-        compiled_query += 'INTO ' + self.target_table.table_name + ' '
+        compiled_query += 'INTO ' + self.target_table().table_name + ' '
         compiled_query = self.add_inserting_fields(compiled_query)
-        compiled_query += ' RETURNING ' + self.target_table.pk.col_name
+        compiled_query += ' RETURNING ' + self.target_table().pk.col_name
         return compiled_query
+
+
+class SQLLog(SQLBasicInsert):
+    log_fields = ['status',
+                  'table_name',
+                  'table_pk']
+
+    def __init__(self, target_table=None, values=None):
+        super().__init__(target_table=target_table, values=values)
+
+        for field in self.log_fields:
+            self.add_field(field)
+
 
 
 class SQLBasicUpdate(SQLBasicInsert):
@@ -103,9 +115,10 @@ class SQLBasicUpdate(SQLBasicInsert):
 
     @property
     def query(self):
-        compiled_query = self.operation + ' ' + self.target_table.table_name + ' SET '
+        compiled_query = self.operation + ' ' + self.target_table().table_name + ' SET '
         compiled_query = self.add_updating_fields(compiled_query)
         compiled_query = self.add_selected_conditions(compiled_query)
+        compiled_query += ' RETURNING ' + self.target_table().pk.col_name
 
         return compiled_query
 
@@ -121,7 +134,7 @@ class SQLBasicDelete(SQLBasicBuilder):
     @property
     def query(self):
         compiled_query = super().query
-        compiled_query += 'from ' + self.target_table.table_name + ' '
+        compiled_query += 'from ' + self.target_table().table_name + ' '
         compiled_query = self.add_selected_conditions(compiled_query)
         return compiled_query
 
@@ -135,7 +148,7 @@ class SQLBasicSelect(SQLBasicBuilder):
 
     def add_field(self, field, table=None):
         if table is None:
-            table = self.target_table.table_name
+            table = self.target_table().table_name
 
         col_name = table + '.' + field
         self.fields.append(col_name)
@@ -147,42 +160,16 @@ class SQLBasicSelect(SQLBasicBuilder):
     def query(self):
         compiled_query = super().query
         compiled_query = self.add_selected_fields(compiled_query)
-        compiled_query += 'from ' + self.target_table.table_name + ' '
+        compiled_query += 'from ' + self.target_table().table_name + ' '
         for field in self.left_joins:
             compiled_query += 'LEFT JOIN {target_table} on {from_table}.{col_name}={target_table}.{target_pk} '.format(
                 target_table=field.target_table,
                 col_name=field.col_name,
                 target_pk=field.target_pk,
-                from_table=self.target_table.table_name
+                from_table=self.target_table().table_name
             )
 
         compiled_query = self.add_selected_conditions(compiled_query)
-        # if self.conditions or self.custom_conditions:
-        #     compiled_query += "WHERE "
-        # first = True
-        # for cond in self.conditions:
-        #     if not (0 <= cond.field < len(self.fields)):
-        #         continue
-        #
-        #     if first:
-        #         first = False
-        #     else:
-        #         compiled_query += cond.logic_operator + ' '
-        #
-        #     compiled_query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
-        #
-        # first = True
-        # for cond in self.custom_conditions:
-        #     if first:
-        #         first = False
-        #     else:
-        #         compiled_query += cond.logic_operator + ' '
-        #
-        #     compiled_query += '{table_name}.{field_name} {operator} ? '.format(
-        #         table_name=self.target_table.table_name,
-        #         field_name=cond.field_name,
-        #         operator=cond.compare_operator)
-
         return compiled_query
 
 

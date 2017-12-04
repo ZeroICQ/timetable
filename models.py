@@ -1,7 +1,7 @@
 import flask
 import fdb
-from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField
-from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert
+from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog
 from math import ceil
 from conditions import BasicCondition, CustomCondition
 
@@ -135,13 +135,21 @@ class BasicModel:
         sql.execute(cur)
         return cur.fetchone()
 
-    def update_fields(self, fields, values, pk_val):
+    def update(self, fields, values, pk_val):
         cur = get_cursor()
         sql = SQLBasicUpdate(self, values)
         sql = self.select_all_fields_raw(sql)
         sql.add_where_equal_param(self.pk.col_name, pk_val)
         sql.execute(cur)
+        pk = cur.fetchone()[0]
+
+        # it is not table TODO: think about naming
+        log_table = LogModel()
+        log_sql = SQLLog(target_table=log_table, values=[2, self.table_name, pk])
+        log_sql.execute(cur)
+
         cur.transaction.commit()
+        return pk
 
     def delete_by_id(self, pk_val):
         cur = get_cursor()
@@ -155,9 +163,9 @@ class BasicModel:
         sql = SQLBasicInsert(self, values=values)
         sql = self.select_all_fields_raw(sql)
         sql.execute(cur)
-        res = cur.fetchone()
+        pk = cur.fetchone()[0]
         cur.transaction.commit()
-        return res
+        return pk
 
 
 class AudienceModel(BasicModel):
@@ -166,7 +174,6 @@ class AudienceModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'AUDIENCES'
-        self.pk = PKField()
         self.name = StringField(title='Номер', col_name='name')
 
 
@@ -176,7 +183,6 @@ class GroupsModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'GROUPS'
-        self.pk = PKField()
         self.name = StringField(title='Группа', col_name='name')
 
 
@@ -186,7 +192,6 @@ class LessonsModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'LESSONS'
-        self.pk = PKField()
         self.name = StringField(title='Название', col_name='name')
         self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
 
@@ -197,7 +202,6 @@ class LessonTypesModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'lesson_types'
-        self.pk = PKField()
         self.name = StringField(title='Название', col_name='name')
 
 
@@ -207,7 +211,6 @@ class SchedItemsModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'sched_items'
-        self.pk = PKField()
         self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),), target_title='Предмет')
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Предмет'),))
         self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences', target_fields=(('name', 'Аудитория'),))
@@ -223,7 +226,6 @@ class SubjectsModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'SUBJECTS'
-        self.pk = PKField()
         self.name = StringField(title='Предмет', col_name='name')
 
 
@@ -233,7 +235,6 @@ class SubjectGroupModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'SUBJECT_GROUP'
-        self.pk = PKField()
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
         self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
 
@@ -243,7 +244,6 @@ class SubjectTeacherModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.pk = PKField()
         self.table_name = 'subject_teacher'
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
         self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
@@ -255,7 +255,6 @@ class TeachersModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'teachers'
-        self.pk = PKField()
         self.name = StringField('ФИО', col_name='name')
 
 
@@ -265,6 +264,27 @@ class WeekdaysModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'weekdays'
-        self.pk = PKField()
         self.name = StringField('Название', col_name='name')
         self.order_number = IntegerField('Порядковый номер', col_name='order_number')
+
+
+class LogStatusModel(BasicModel):
+    title = 'Статус записи'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'log_status'
+        self.name = StringField('Статус', col_name='name')
+
+
+class LogModel(BasicModel):
+    title = 'Логи'
+
+    def __init__(self):
+        super().__init__()
+        self.table_name = 'log'
+        self.status = ForeignKeyField(col_name='status', target_table='log_status',target_fields=(('name', 'Статус'),))
+        self.logged_table_name = StringField(col_name='table_name', title='Таблица')
+        self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
+        # TODO: fix creation
+        self.datetime = TimestampField(col_name='change_time', title='Время')

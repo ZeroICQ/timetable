@@ -26,7 +26,10 @@ def get_tables():
         models.SubjectGroupModel,
         models.SubjectTeacherModel,
         models.TeachersModel,
-        models.WeekdaysModel)
+        models.WeekdaysModel,
+        models.LogStatusModel,
+        models.LogModel
+    )
     return tables
 
 
@@ -98,7 +101,7 @@ def index(selected_table=-1):
 
 
 @app.route("/<int:table>/edit/<int:pk>", methods=['GET', 'POST'])
-@misc.templated('view.html')
+@misc.templated('edit.html')
 def edit(table=None, pk=None):
     data = {}
     tables = tables = get_tables()
@@ -112,7 +115,7 @@ def edit(table=None, pk=None):
 
     if request.method == 'POST':
         values = [request.form.get(str(i), None) for i in range(len(fields))]
-        model.update_fields(fields, values, pk)
+        model.update(fields, values, pk)
 
     data['values'] = model.fetch_raw_by_pk(pk)
 
@@ -159,5 +162,6 @@ def create(table=None):
         data['status'] = 'ok'
 
     return data
+
 
 app.run(debug=True)
