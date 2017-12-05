@@ -9,7 +9,12 @@
           {{ form_field(field, values[loop.index0], name=loop.index0) }}
         {% endfor %}
       </div>
-      <input type="submit" class="btn btn-sm btn-danger" value="Удалить">
+      <button type="submit" class="btn-delete-n-close btn btn-sm btn-danger" value="del-n-close">Удалить и закрыть</button>
     </form>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% include "js/delete.js" %}
 {% endblock %}

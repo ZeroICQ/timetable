@@ -43,5 +43,10 @@ $(document).ready(function() {
         }
     });
 
+    //ACTION LINKS
+    $(document).on('click', '.record-action-link', function(e) {
+        e.preventDefault();
+        window.open($(this).attr('href'));
+    });
 });
 </script>

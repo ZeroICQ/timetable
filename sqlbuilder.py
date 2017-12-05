@@ -108,7 +108,6 @@ class SQLLog(SQLBasicInsert):
             self.add_field(field)
 
 
-
 class SQLBasicUpdate(SQLBasicInsert):
     def __init__(self, target_table, values=None):
         super().__init__(operation='UPDATE', target_table=target_table, values=values)

@@ -139,6 +139,7 @@ def delete(table=None, pk=None):
     if request.method == 'POST':
         model.delete_by_id(pk_val=pk)
         data['status'] = 'ok'
+        data['close'] = True
 
     return data
 

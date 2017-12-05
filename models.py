@@ -135,6 +135,14 @@ class BasicModel:
         sql.execute(cur)
         return cur.fetchone()
 
+    def log_action(self, cursor, action, pk):
+        actions = {'delete': 1,
+                   'modify': 2}
+
+        log_table = LogModel()
+        log_sql = SQLLog(target_table=log_table, values=[actions[action], self.table_name, pk])
+        log_sql.execute(cursor)
+
     def update(self, fields, values, pk_val):
         cur = get_cursor()
         sql = SQLBasicUpdate(self, values)
@@ -143,11 +151,7 @@ class BasicModel:
         sql.execute(cur)
         pk = cur.fetchone()[0]
 
-        # it is not table TODO: think about naming
-        log_table = LogModel()
-        log_sql = SQLLog(target_table=log_table, values=[2, self.table_name, pk])
-        log_sql.execute(cur)
-
+        self.log_action(cursor=cur, pk=pk, action='modify')
         cur.transaction.commit()
         return pk
 
@@ -156,6 +160,7 @@ class BasicModel:
         sql = SQLBasicDelete(self)
         sql.add_where_equal_param(self.pk.col_name, pk_val)
         sql.execute(cur)
+        self.log_action(cursor=cur, pk=pk_val, action='delete')
         cur.transaction.commit()
 
     def insert(self, values):

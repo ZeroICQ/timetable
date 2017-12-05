@@ -29,10 +29,11 @@
   </div>
 
   {% include "modal.html" %}
-
-  <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/popper.min.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
-  {% include "js/main.js" %}
+  {% block scripts %}
+    <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    {% include "js/main.js" %}
+  {% endblock %}
 </body>
 </html>
