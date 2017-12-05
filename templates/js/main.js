@@ -23,8 +23,15 @@ $(document).ready(function() {
         isSearchFieldChanged = true
     });
 
+    var redirectUser = false;
+
     //CATCH USER
     $('a').on('click', function(e) {
+        if (redirectUser) {
+            redirectUser = false;
+            return;
+        }
+
         if (isSearchFieldChanged) {
             $that = $(this)
             e.preventDefault();
@@ -32,7 +39,9 @@ $(document).ready(function() {
 
             var proceed_leave = function() {
                 console.log('bye');
-                window.location = $that.attr('href');
+                redirectUser = true;
+                $('#modal-notsaved').modal('hide');
+                $that[0].click()
             };
 
             $('#confirm_leave').on('click', proceed_leave);
