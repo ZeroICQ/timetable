@@ -57,5 +57,10 @@ $(document).ready(function() {
 //        e.preventDefault();
 //        window.open($(this).attr('href'));
 //    });
+
+
+    var checkForUpdate() {
+    }
+    set
 });
 </script>

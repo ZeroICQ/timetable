@@ -48,7 +48,7 @@
         </thead>
 
         {% for entry in entries %}
-          <tr>
+          <tr data-pk="{{ entry[0] }}">
           {% for field in entry %}
             <td>
               {{ field }}

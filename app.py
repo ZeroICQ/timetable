@@ -3,10 +3,13 @@ from flask import request
 from flask import render_template
 from flask import redirect
 from flask import url_for
+from flask import jsonify
 import models
 import misc
 import jinja_helpers
 from conditions import BasicCondition
+from datetime import  datetime
+
 
 app = Flask(__name__)
 jinja_helpers.register_helpers(app)
@@ -172,6 +175,26 @@ def create(table=None):
         #     pass
 
     return data
+
+
+@app.route("/<int:table>/log/", methods=['GET'])
+def get_log(table):
+    data = {}
+    tables = get_tables()
+
+    if not (0 <= table < len(tables)):
+        return jsonify(data)
+    last_update = request.args.get('last_updated', type=int)
+    last_update = datetime.fromtimestamp(last_update/1000) #convert from js
+
+    ll = models.LogModel()
+    ll.get_changes(last_update, [1,2], 'AUDIENCES')
+    data['last_update'] = last_update
+
+    return jsonify(data)
+# select * from LOG l
+# where l.CHANGE_TIME>'2017-12-06' and l.CHANGE_TIME = (select max(l1.CHANGE_TIME) from LOG l1 where l1.table_pk = l.table_pk)
+# order by l.TABLE_PK
 
 
 app.run(debug=True)

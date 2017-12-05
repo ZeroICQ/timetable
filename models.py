@@ -4,7 +4,7 @@ from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyFiel
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog
 from math import ceil
 from conditions import BasicCondition, CustomCondition
-
+from datetime import datetime
 
 def get_db():
     """Opens a new database connection if there is none yet for the
@@ -293,3 +293,25 @@ class LogModel(BasicModel):
         self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
         # TODO: fix creation
         self.datetime = TimestampField(col_name='change_time', title='Время')
+
+    def get_changes(self, date_start, pks, table_name):
+        cur = get_cursor()
+        sql = self.select_all_fields_raw()
+        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
+        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
+        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name,
+                                                   compare_operator='=',
+                                                   val='(select max({tmp_table_name}.{time_col_name}) '
+                                                       'from {table_name} {tmp_table_name} '
+                                                       'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(tmp_table_name=self.table_name + '1',
+                                                                      time_col_name=self.datetime.col_name,
+                                                                      table_name=self.table_name,
+                                                                      table_pk=self.logged_table_pk.col_name)))
+        # l.CHANGE_TIME = (select max(l1.CHANGE_TIME)
+        # from LOG l1
+        # where
+        # l1.table_pk = l.table_pk)
+        sql.add_custom_where_param(CustomCondition(field_name=self.logged_table_name.col_name,
+                                                   compare_operator='=', val=table_name))
+        sql.execute(cur)
+        return cur.fetchall()
