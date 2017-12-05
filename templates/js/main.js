@@ -28,7 +28,7 @@ $(document).ready(function() {
         if (isSearchFieldChanged) {
             $that = $(this)
             e.preventDefault();
-            $('#myInput').modal();
+            $('#modal-notsaved').modal();
 
             var proceed_leave = function() {
                 console.log('bye');
@@ -37,16 +37,16 @@ $(document).ready(function() {
 
             $('#confirm_leave').on('click', proceed_leave);
 
-            $('#decline_leave').click(function() {
+            $('#modal-notsaved').one('hidden.bs.modal', function () {
                 $('#confirm_leave').off('click', proceed_leave);
             });
         }
     });
 
     //ACTION LINKS
-    $(document).on('click', '.record-action-link', function(e) {
-        e.preventDefault();
-        window.open($(this).attr('href'));
-    });
+//    $(document).on('click', '.record-action-link', function(e) {
+//        e.preventDefault();
+//        window.open($(this).attr('href'));
+//    });
 });
 </script>

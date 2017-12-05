@@ -1,7 +1,8 @@
-{% extends "layout.html" %}
+{% extends "record_action.html" %}
 
 {% block body %}
-{{ status }}
+  {{ super() }}
+  {{ status }}
   <div class="col col-md-4">
     <form method="post">
       <div class="form-group">
@@ -12,9 +13,4 @@
       <button type="submit" class="btn-delete-n-close btn btn-sm btn-danger" value="del-n-close">Удалить и закрыть</button>
     </form>
   </div>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  {% include "js/delete.js" %}
 {% endblock %}

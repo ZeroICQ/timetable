@@ -1,6 +1,8 @@
 from flask import Flask
 from flask import request
 from flask import render_template
+from flask import redirect
+from flask import url_for
 import models
 import misc
 import jinja_helpers
@@ -139,7 +141,7 @@ def delete(table=None, pk=None):
     if request.method == 'POST':
         model.delete_by_id(pk_val=pk)
         data['status'] = 'ok'
-        data['close'] = True
+        data['close_window'] = True
 
     return data
 
@@ -148,7 +150,7 @@ def delete(table=None, pk=None):
 @misc.templated('create.html')
 def create(table=None):
     data = {}
-    tables = tables = get_tables()
+    tables = get_tables()
 
     if not (0 <= table < len(tables)):
         return data
@@ -159,8 +161,15 @@ def create(table=None):
 
     if request.method == 'POST':
         values = [request.form.get(str(i), None) for i in range(len(fields))]
-        data['pk'] = model.insert(values)
-        data['status'] = 'ok'
+        pk = model.insert(values)
+        action = request.form.get('action', None)
+
+        if action == 'edit':
+            redirect(url_for('edit',table=table, pk=pk))
+        elif action == 'close':
+            data['close_window'] = True
+        # elif action == 'new' or action is None:
+        #     pass
 
     return data
 

@@ -1,8 +1,9 @@
-{% extends "layout.html" %}
+{% extends "record_action.html" %}
 
 {% block body %}
-{{ status }}
-{{ pk }}
+  {{ super() }}
+  {{ status }}
+  {{ pk }}
   <div class="col col-md-4">
     <form method="post">
       <div class="form-group">
@@ -10,7 +11,9 @@
           {{ form_field(field, name=loop.index0) }}
         {% endfor %}
       </div>
-      <button type="submit" name="action" value="save" class="btn btn-sm btn-success">Создать</button>
+      <button type="submit" name="action" value="new" class="btn btn-sm btn-success">Создать и продолжить</button>
+      <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Создать и редактировать</button>
+      <button type="submit" name="action" value="close" class="btn btn-sm btn-success">Создать и закрыть</button>
     </form>
   </div>
 {% endblock %}
