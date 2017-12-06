@@ -172,6 +172,11 @@ class SQLBasicSelect(SQLBasicBuilder):
         return compiled_query
 
 
+class SQLLogSelect():
+    def __init__(self):
+        super().__init__()
+
+
 class SQLCountAll(SQLBasicSelect):
     def add_selected_fields(self, query):
         return query + 'COUNT(*) '
