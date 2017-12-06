@@ -121,6 +121,10 @@ def edit(table=None, pk=None):
     if request.method == 'POST':
         values = [request.form.get(str(i), None) for i in range(len(fields))]
         model.update(fields, values, pk)
+        action = request.form.get('action', None)
+        if action == 'close':
+            data['close_window'] = True
+            return data
 
     data['values'] = model.fetch_raw_by_pk(pk)
 
