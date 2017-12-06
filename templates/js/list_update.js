@@ -40,7 +40,7 @@
                 if (data['changes'][pks[i]]  !== undefined) {
                     var status = data['changes'][pks[i]];
                     if (status === 'MODIFIED') {
-                        $("tr[data-pk=" + pks[i] + "]").addClass('bg-warning');
+                        $("tr[data-pk=" + pks[i] + "]").addClass('bg-info');
                         updateLocal(pks[i]);
                     } else if (status === 'DELETED') {
                         $("tr[data-pk=" + pks[i] + "]").addClass('bg-danger');
