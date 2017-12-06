@@ -208,4 +208,20 @@ def get_log(table):
     return jsonify(data)
 
 
-app.run(debug=True)
+@app.route('/<int:table>/get', methods=['GET'])
+def record_get(table, pk=None):
+    data = {}
+    tables = get_tables()
+
+    pk = request.args.get('pk', None, type=int);
+
+    if not (0 <= table < len(tables)):
+        return jsonify(data)
+
+    model = tables[table]()
+
+    data = model.fetch_by_pk(pk_val=pk)
+    return jsonify(data)
+
+
+#app.run(debug=True)

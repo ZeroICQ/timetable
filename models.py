@@ -135,6 +135,13 @@ class BasicModel:
         sql.execute(cur)
         return cur.fetchone()
 
+    def fetch_by_pk(self, pk_val):
+        cur = get_cursor()
+        sql = self.select_all_fields()
+        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql.execute(cur)
+        return cur.fetchone()
+
     def log_action(self, cursor, action, pk):
         actions = {'delete': 1,
                    'modify': 2}
