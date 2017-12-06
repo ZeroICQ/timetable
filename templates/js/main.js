@@ -58,9 +58,6 @@ $(document).ready(function() {
 //        window.open($(this).attr('href'));
 //    });
 
-//
-//    var checkForUpdate() {
-//    }
-//    set
+
 });
 </script>

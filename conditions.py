@@ -28,9 +28,18 @@ class BasicCondition:
         self._compare_operator = val
 
 
-class CustomCondition():
+class CustomCondition:
     def __init__(self, field_name, val, compare_operator, logic_operator='AND'):
         self.field_name = field_name
         self.val = val
         self.compare_operator = compare_operator
         self.logic_operator = logic_operator
+
+
+class GroupCondition():
+    def __init__(self, logic_operator):
+        self.logic_operator = logic_operator
+        self.conditions = []
+
+    def add_condition(self, condition):
+        self.conditions.append(condition)

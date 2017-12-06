@@ -67,6 +67,7 @@ def index(selected_table=-1):
     selected_model = tables[selected_table]()
 
     data['fields_titles'] = selected_model.fields_titles
+    data['last_update'] = datetime.now().timestamp()
 
     search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
     search_vals = request.args.getlist('search_val')
@@ -186,19 +187,25 @@ def get_log(table):
     data = {}
     tables = get_tables()
 
-    if not (0 <= table < len(tables)):
-        return jsonify(data)
-    last_update = request.args.get('last_updated', type=int)
-    last_update = datetime.fromtimestamp(last_update/1000) #convert from js
+    last_update = request.args.get('last_update', None, type=float)
 
-    ll = models.LogModel()
-    ll.get_changes(last_update, [1,2], 'AUDIENCES')
-    data['last_update'] = last_update
+    if not (0 <= table < len(tables)) or last_update is None:
+        return jsonify(data)
+
+    last_update = datetime.fromtimestamp(last_update)
+
+    pks = request.args.getlist('pk', type=int)
+    logs = models.LogModel()
+    changes = logs.get_changes(last_update, pks, tables[table]().table_name)
+
+    ch_dict = {}
+    for change in changes:
+        ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
+
+    data['changes'] = ch_dict
+    data['last_update'] = datetime.now().timestamp()
 
     return jsonify(data)
-# select * from LOG l
-# where l.CHANGE_TIME>'2017-12-06' and l.CHANGE_TIME = (select max(l1.CHANGE_TIME) from LOG l1 where l1.table_pk = l.table_pk)
-# order by l.TABLE_PK
 
 
 app.run(debug=True)

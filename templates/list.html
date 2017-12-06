@@ -48,7 +48,7 @@
         </thead>
 
         {% for entry in entries %}
-          <tr data-pk="{{ entry[0] }}">
+          <tr data-pk="{{ entry[0] }}" class="entry">
           {% for field in entry %}
             <td>
               {{ field }}
@@ -93,4 +93,9 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% include "js/list_update.js" %}
 {% endblock %}

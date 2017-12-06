@@ -10,16 +10,20 @@ class SQLBasicBuilder:
         self.pagination = ()
         self.conditions = []
         self.custom_conditions = []
+        self.group_conditions = []
 
     @property
     def query(self):
         return self.operation + ' '
 
-    def add_where_param(self, cond):
+    def add_condition(self, cond):
         self.conditions.append(cond)
 
-    def add_custom_where_param(self, cond):
+    def add_custom_condition(self, cond):
         self.custom_conditions.append(cond)
+
+    def add_group_condition(self, cond):
+        self.group_conditions.append(cond)
 
     def add_where_equal_param(self, col_name, val, logic_operator=None):
         self.custom_conditions.append(CustomCondition(col_name, val, '=', logic_operator=logic_operator))
@@ -32,11 +36,34 @@ class SQLBasicBuilder:
             params = []
         params += [cond.val for cond in self.conditions]
         params += [cond.val for cond in self.custom_conditions]
+        params += [cond.val for group in self.group_conditions for cond in group.conditions]
         return cur.execute(self.query, (params + list(self.pagination)))
 
+    def add_selected_custom_conditions(self, query, conditions):
+        first = True
+        for cond in conditions:
+            if first:
+                first = False
+            else:
+                query += cond.logic_operator + ' '
+
+            query += '{table_name}.{field_name} {operator} ? '.format(
+                table_name=self.target_table().table_name,
+                field_name=cond.field_name,
+                operator=cond.compare_operator)
+
+        return query
+
+    def add_selected_group(self, query, conditions):
+        query += '('
+        query = self.add_selected_custom_conditions(query, conditions)
+        query += ') '
+        return query
+
     def add_selected_conditions(self, query):
-        if self.conditions or self.custom_conditions:
+        if self.conditions or self.custom_conditions or self.group_conditions:
             query += "WHERE "
+
         first = True
         for cond in self.conditions:
             if not (0 <= cond.field < len(self.fields)):
@@ -49,17 +76,18 @@ class SQLBasicBuilder:
 
             query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
 
-        first = True
-        for cond in self.custom_conditions:
+        query = self.add_selected_custom_conditions(query, self.custom_conditions)
+
+        first = not self.custom_conditions
+
+        for group in self.group_conditions:
             if first:
                 first = False
             else:
-                query += cond.logic_operator + ' '
+                query += group.logic_operator + ' '
 
-            query += '{table_name}.{field_name} {operator} ? '.format(
-                table_name=self.target_table().table_name,
-                field_name=cond.field_name,
-                operator=cond.compare_operator)
+            query = self.add_selected_group(query, group.conditions)
+
         return query
 
 
@@ -172,9 +200,18 @@ class SQLBasicSelect(SQLBasicBuilder):
         return compiled_query
 
 
-class SQLLogSelect():
-    def __init__(self):
-        super().__init__()
+class SQLLogSelect(SQLBasicSelect):
+    def add_selected_conditions(self, query):
+        query = super().add_selected_conditions(query)
+        subselect = 'AND {table_name}.{time_col_name} = (select max({tmp_table_name}.{time_col_name}) from {table_name} {tmp_table_name} ' \
+                    'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(
+                        tmp_table_name=self.target_table().table_name + '1',
+                        time_col_name=self.target_table().datetime.col_name,
+                        table_name=self.target_table().table_name,
+                        table_pk=self.target_table().logged_table_pk.col_name)
+
+        query += subselect
+        return query
 
 
 class SQLCountAll(SQLBasicSelect):

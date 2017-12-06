@@ -1,9 +1,9 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
-from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog, SQLLogSelect
 from math import ceil
-from conditions import BasicCondition, CustomCondition
+from conditions import BasicCondition, CustomCondition, GroupCondition
 from datetime import datetime
 
 def get_db():
@@ -117,7 +117,7 @@ class BasicModel:
         if len(fields) == len(vals):
             for param in zip(fields, vals, logic_operators, compare_operators):
                 if param[1]:
-                    sql.add_where_param(BasicCondition(param[0], param[1], param[2], param[3]))
+                    sql.add_condition(BasicCondition(param[0], param[1], param[2], param[3]))
 
     def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field, sort_order):
         cur = get_cursor()
@@ -288,7 +288,7 @@ class LogModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.table_name = 'log'
-        self.status = ForeignKeyField(col_name='status', target_table='log_status',target_fields=(('name', 'Статус'),))
+        self.status = ForeignKeyField(col_name='status', target_table='log_status', target_fields=(('name', 'Статус'),))
         self.logged_table_name = StringField(col_name='table_name', title='Таблица')
         self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
         # TODO: fix creation
@@ -296,22 +296,19 @@ class LogModel(BasicModel):
 
     def get_changes(self, date_start, pks, table_name):
         cur = get_cursor()
-        sql = self.select_all_fields_raw()
-        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
-        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
-        sql.add_custom_where_param(CustomCondition(field_name=self.datetime.col_name,
-                                                   compare_operator='=',
-                                                   val='(select max({tmp_table_name}.{time_col_name}) '
-                                                       'from {table_name} {tmp_table_name} '
-                                                       'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(tmp_table_name=self.table_name + '1',
-                                                                      time_col_name=self.datetime.col_name,
-                                                                      table_name=self.table_name,
-                                                                      table_pk=self.logged_table_pk.col_name)))
-        # l.CHANGE_TIME = (select max(l1.CHANGE_TIME)
-        # from LOG l1
-        # where
-        # l1.table_pk = l.table_pk)
-        sql.add_custom_where_param(CustomCondition(field_name=self.logged_table_name.col_name,
-                                                   compare_operator='=', val=table_name))
+        sql = SQLLogSelect(target_table=self)
+        sql = self.select_all_fields(sql)#there is no pk!! fix in future
+        sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
+        sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
+        sql.add_custom_condition(CustomCondition(field_name=self.logged_table_name.col_name,
+                                                 compare_operator='=', val=table_name))
+        group_pk = GroupCondition('AND')
+        for pk in pks:
+            group_pk.add_condition(CustomCondition(field_name=self.logged_table_pk.col_name,
+                                                     val=pk,
+                                                     compare_operator='=',
+                                                     logic_operator='OR'))
+
+        sql.add_group_condition(group_pk)
         sql.execute(cur)
-        return cur.fetchall()
+        return cur.fetchallmap()
