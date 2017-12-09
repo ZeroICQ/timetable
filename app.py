@@ -9,7 +9,7 @@ import misc
 import jinja_helpers
 from conditions import BasicCondition
 from datetime import  datetime
-
+from collections import OrderedDict
 
 app = Flask(__name__)
 jinja_helpers.register_helpers(app)
@@ -20,93 +20,76 @@ jinja_helpers.register_helpers(app)
 #     models.close_db(error)
 
 
-def get_tables():
-    tables = (
-        models.AudienceModel,
-        models.GroupsModel,
-        models.LessonsModel,
-        models.LessonTypesModel,
-        models.SchedItemsModel,
-        models.SubjectsModel,
-        models.SubjectGroupModel,
-        models.SubjectTeacherModel,
-        models.TeachersModel,
-        models.WeekdaysModel,
-        models.LogStatusModel,
-        models.LogModel
-    )
-    return tables
+tables = OrderedDict({model.title.lower(): model for model in models.all_models})
+pagination_choices = (10, 20, 50)
+
+'''-----------'''
+'''CONTROLLERS'''
+'''-----------'''
 
 
-def get_pagination_choices():
-    choices = (
-        5, 10, 20
-    )
-    return choices
-
-
-@app.route("/<int:selected_table>/")
+@app.route("/<table>/")
 @app.route("/")
-@misc.templated('list.html')
-def index(selected_table=-1):
+@misc.templated('catalog.html')
+def catalog(table=''):
     data = {}
     query_params = {}
     data['query_params'] = query_params
 
-    tables = get_tables()
-
-    data['tables_titles'] = [table.title for table in tables]
-    pagination_choices = get_pagination_choices()
+    data['tables'] = tables
     data['pagination_choices'] = pagination_choices
 
-    if not (0 <= selected_table < len(tables)):
+    table = table.lower()
+
+    if table not in tables:
         return data
 
-    data['selected_table'] = selected_table
+    data['selected_table'] = table
 
-    selected_model = tables[selected_table]()
+    selected_model = tables[table]()
 
-    data['fields_titles'] = selected_model.fields_titles
-    data['last_update'] = datetime.now().timestamp()
+    data['fields'] = selected_model.fields
+    # data['last_update'] = datetime.now().timestamp()
 
-    search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
-    search_vals = request.args.getlist('search_val')
+    # search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
+    # search_vals = request.args.getlist('search_val')
 
-    logic_operators = request.args.getlist('logic_operator', type=misc.ge_int(0))
-    compare_operators = request.args.getlist('compare_operator', type=misc.ge_int(0))
+    # logic_operators = request.args.getlist('logic_operator', type=misc.ge_int(0))
+    # compare_operators = request.args.getlist('compare_operator', type=misc.ge_int(0))
 
-    data['logic_search_operators_list'] = BasicCondition.logic_operators
-    data['compare_search_operators_list'] = BasicCondition.compare_operators
+    # data['logic_search_operators_list'] = BasicCondition.logic_operators
+    # data['compare_search_operators_list'] = BasicCondition.compare_operators
 
-    pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
+    # pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
     page = request.args.get('page', 1, type=misc.ge_int(1))
-    sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
-    sort_order = request.args.get('sort_order', None, type=misc.sort_order)
-
-    query_params['sort_field'] = sort_field
-    query_params['sort_order'] = sort_order
-
-    selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
+    # sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
+    # sort_order = request.args.get('sort_order', None, type=misc.sort_order)
+    #
+    # query_params['sort_field'] = sort_field
+    # query_params['sort_order'] = sort_order
+    #
+    # selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
     query_params['page'] = page
-    query_params['pagination_choice'] = pagination_choice
-
-    if search_fields and search_vals:
-        query_params['search_field'] = search_fields
-        query_params['search_val'] = search_vals
-        data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
-                                                               compare_operators, sort_field, sort_order)
-        data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
-        query_params['logic_operator'] = logic_operators
-        query_params['compare_operator'] = compare_operators
-        query_params['search_val'] = search_vals
-    else:
-        data['entries'] = selected_model.fetch_all(sort_field, sort_order)
-        data['pages'] = selected_model.get_pages()
+    # query_params['pagination_choice'] = pagination_choice
+    #
+    # if search_fields and search_vals:
+    #     query_params['search_field'] = search_fields
+    #     query_params['search_val'] = search_vals
+    #     data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
+    #                                                            compare_operators, sort_field, sort_order)
+    #     data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
+    #     query_params['logic_operator'] = logic_operators
+    #     query_params['compare_operator'] = compare_operators
+    #     query_params['search_val'] = search_vals
+    # else:
+    data['entries'] = selected_model.fetch_all()
+    data['pages'] = 10
+    # data['pages'] = selected_model.get_pages()
 
     return data
 
 
-@app.route("/<int:table>/edit/<int:pk>", methods=['GET', 'POST'])
+@app.route("/<table>/edit/<int:pk>", methods=['GET', 'POST'])
 @misc.templated('edit.html')
 def edit(table=None, pk=None):
     data = {}
@@ -132,7 +115,7 @@ def edit(table=None, pk=None):
     return data
 
 
-@app.route("/<int:table>/delete/<int:pk>", methods=['GET', 'POST'])
+@app.route("/<table>/delete/<int:pk>", methods=['GET', 'POST'])
 @misc.templated('delete.html')
 def delete(table=None, pk=None):
     data = {}
@@ -154,7 +137,7 @@ def delete(table=None, pk=None):
     return data
 
 
-@app.route("/<int:table>/create", methods=['GET', 'POST'])
+@app.route("/<table>/create", methods=['GET', 'POST'])
 @misc.templated('create.html')
 def create(table=None):
     data = {}
@@ -182,7 +165,7 @@ def create(table=None):
     return data
 
 
-@app.route("/<int:table>/log/", methods=['GET'])
+@app.route("/<table>/log/", methods=['GET'])
 def get_log(table):
     data = {}
     tables = get_tables()
@@ -208,7 +191,7 @@ def get_log(table):
     return jsonify(data)
 
 
-@app.route('/<int:table>/get', methods=['GET'])
+@app.route('/<table>/get', methods=['GET'])
 def record_get(table, pk=None):
     data = {}
     tables = get_tables()
@@ -224,4 +207,4 @@ def record_get(table, pk=None):
     return jsonify(data)
 
 
-#app.run(debug=True)
+app.run(debug=True)

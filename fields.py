@@ -1,7 +1,8 @@
 class BaseField:
-    def __init__(self, title=None, col_name=None):
-        self._title = title
+    def __init__(self, title, col_name, table_name=None):
+        self.title = title
         self.col_name = col_name
+        self.table_name = table_name
 
     def select_col(self, sql_builder):
         sql_builder.add_field(self.col_name)
@@ -9,14 +10,9 @@ class BaseField:
     def select_col_raw(self, sql_builder):
         sql_builder.add_field(self.col_name)
 
-    @property
-    def title(self):
-        return self._title
-
 
 class IntegerField(BaseField):
-    def __init__(self, title=None, col_name=None):
-        super().__init__(title, col_name)
+    pass
 
 
 class PKField(IntegerField):
@@ -25,24 +21,22 @@ class PKField(IntegerField):
 
 
 class ForeignKeyField(BaseField):
-    def __init__(self, title=None, col_name=None, target_table=None,
-                 target_fields=(), target_pk='id', target_title=None):
+    def __init__(self, title, col_name, target_model, target_fields=(), target_pk='id'):
         super().__init__(title, col_name)
 
         self.target_pk = target_pk
         self.target_fields = target_fields
-        self.target_table = target_table
-        self.target_title = target_title
+        self.target_model = target_model
 
-    def select_col(self, sql_builder):
-        for field in self.target_fields:
-            sql_builder.add_field(field[0], self.target_table)
-
-        sql_builder.add_left_join(self)
-
-    @property
-    def title(self):
-        return [target_field[1] for target_field in self.target_fields]
+    # def select_col(self, sql_builder):
+    #     for field in self.target_fields:
+    #         sql_builder.add_field(field[0], self.target_table)
+    #
+    #     sql_builder.add_left_join(self)
+    #
+    # @property
+    # def title(self):
+    #     return [target_field[1] for target_field in self.target_fields]
 
 
 class StringField(BaseField):

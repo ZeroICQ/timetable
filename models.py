@@ -34,13 +34,48 @@ def close_db(error):
         flask.g.fb_db.close()
 
 
-class BasicModel:
+class BasicModelMetaclass(type):
+    def __call__(self, *args, **kwargs):
+        model = super().__call__(*args, **kwargs)
+        model._after_init_()
+        return model
+
+
+class BasicModel(metaclass=BasicModelMetaclass):
     title = None
+    table_name = None
 
     def __init__(self):
-        self.table_name = None
+        super().__init__()
+        print('init base start')
         self.pagination = None
         self.pk = PKField()
+        print('init base end')
+
+    def _after_init_(self):
+        self.resolve_foreign_keys()
+
+    def resolve_foreign_keys(self):
+        resolved_fields = []
+
+        for field in self.__dict__.values():
+            if isinstance(field, ForeignKeyField):
+                model = field.target_model()
+                for col_name, colt_title in field.target_fields:
+                    foreign_field = model.get_field_by_col_name(col_name)
+                    foreign_field.title = colt_title
+                    resolved_fields.append(foreign_field)
+            elif isinstance(field, BaseField):
+                field.table_name = self.table_name
+
+        for field in resolved_fields:
+            setattr(self, field.table_name + '__' + field.col_name, field)
+
+    def get_field_by_col_name(self, col_name):
+        for field in self.__dict__.values():
+            if isinstance(field, BaseField) and field.col_name == col_name:
+                return field
+
 
     @property
     def fields(self):
@@ -49,20 +84,6 @@ class BasicModel:
     @property
     def mutable_fields(self):
         return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField) and not isinstance(val, PKField)]
-
-    @property
-    def fields_titles(self):
-        titles = []
-        for field in self.fields:
-            title = field.title
-
-            if isinstance(title, (list, tuple)):
-                for el in title:
-                    titles.append(el)
-            else:
-                titles.append(title)
-
-        return titles
 
     def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None):
         cur = get_cursor()
@@ -102,7 +123,7 @@ class BasicModel:
             field.select_col_raw(sql)
         return sql
 
-    def fetch_all(self, sort_field, sort_order):
+    def fetch_all(self, sort_field=None, sort_order=None):
         cur = get_cursor()
         sql = self.select_all_fields()
         sql.sort_field = sort_field
@@ -182,47 +203,47 @@ class BasicModel:
 
 class AudienceModel(BasicModel):
     title = 'Аудитории'
+    table_name = 'audiences'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'AUDIENCES'
         self.name = StringField(title='Номер', col_name='name')
 
 
 class GroupsModel(BasicModel):
     title = 'Группы'
+    table_name = 'groups'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'GROUPS'
         self.name = StringField(title='Группа', col_name='name')
 
 
 class LessonsModel(BasicModel):
     title = 'Пары'
+    table_name = 'lessons'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'LESSONS'
         self.name = StringField(title='Название', col_name='name')
         self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
 
 
 class LessonTypesModel(BasicModel):
     title = 'Тип пары'
+    table_name = 'lesson_types'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'lesson_types'
         self.name = StringField(title='Название', col_name='name')
 
 
 class SchedItemsModel(BasicModel):
     title = 'Расписание'
+    table_name = 'sched_items'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'sched_items'
         self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),), target_title='Предмет')
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Предмет'),))
         self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences', target_fields=(('name', 'Аудитория'),))
@@ -234,67 +255,67 @@ class SchedItemsModel(BasicModel):
 
 class SubjectsModel(BasicModel):
     title = 'Предметы'
+    table_name = 'subjects'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'SUBJECTS'
         self.name = StringField(title='Предмет', col_name='name')
 
 
 class SubjectGroupModel(BasicModel):
     title = 'Учебный план'
+    table_name = 'subject_group'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'SUBJECT_GROUP'
         self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
         self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
 
 
 class SubjectTeacherModel(BasicModel):
     title = 'Нагрузка учителя'
+    table_name = 'subject_teacher'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'subject_teacher'
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
-        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
+        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.teacher = ForeignKeyField(title='ID учителя', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
 
 
 class TeachersModel(BasicModel):
     title = 'Учителя'
+    table_name = 'teachers'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'teachers'
         self.name = StringField('ФИО', col_name='name')
 
 
 class WeekdaysModel(BasicModel):
     title = 'Дни недели'
+    table_name = 'weekdays'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'weekdays'
         self.name = StringField('Название', col_name='name')
         self.order_number = IntegerField('Порядковый номер', col_name='order_number')
 
 
 class LogStatusModel(BasicModel):
     title = 'Статус записи'
+    table_name = 'log_status'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'log_status'
         self.name = StringField('Статус', col_name='name')
 
 
 class LogModel(BasicModel):
     title = 'Логи'
+    table_name = 'log'
 
     def __init__(self):
         super().__init__()
-        self.table_name = 'log'
         self.status = ForeignKeyField(col_name='status', target_table='log_status', target_fields=(('name', 'Статус'),))
         self.logged_table_name = StringField(col_name='table_name', title='Таблица')
         self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
@@ -319,3 +340,19 @@ class LogModel(BasicModel):
         sql.add_group_condition(group_pk)
         sql.execute(cur)
         return cur.fetchallmap()
+
+
+all_models = (
+        # AudienceModel,
+        # GroupsModel,
+        # LessonsModel,
+        # LessonTypesModel,
+        # SchedItemsModel,
+        SubjectsModel,
+        # SubjectGroupModel,
+        SubjectTeacherModel,
+        TeachersModel,
+        # WeekdaysModel,
+        # LogStatusModel,
+        # LogModel
+)
