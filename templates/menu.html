@@ -55,7 +55,7 @@
 
 <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
   {% for table_uri, table in tables.items() %}
-    <a class="nav-link {% if selected_table is defined and selected_table ==  table_uri %} active {% endif %}" href="{{ url_for('catalog', table=table_uri, pagination_choice=request.args.get('pagination_choice', 0)) }}">
+    <a class="nav-link {% if selected_table is defined and selected_table ==  table_uri %} active {% endif %}" href="{{ url_for('catalog', table=table_uri, page_size=request.args.get('page_size', 0)) }}">
       {{ table.title }}
     </a>
   {% endfor %}
@@ -63,10 +63,10 @@
 
   <div class="form-group">
     <label for="pagination_choice">Показать на странице</label>
-    <select id="pagination_choice" name='pagination_choice' class="form-control form-control-sm">
-      {% for option in pagination_choices %}
-        <option {% if query_params['pagination_choice'] is defined and loop.index0 == query_params['pagination_choice'] %} selected {% endif %} value="{{ loop.index0 }}">
-          {{ option }}
+    <select id="pagination_choice" name='page_size' class="form-control form-control-sm">
+      {% for choice in pagination_choices %}
+        <option {% if query_params['page_size'] is defined and choice|int == query_params['page_size']|int %} selected {% endif %} value="{{ choice }}">
+          {{ choice }}
         </option>
       {% endfor %}
     </select>

@@ -9,6 +9,7 @@ class SQLBasicBuilder:
         self.fields = fields
         self.pagination = ()
         self.conditions = []
+        self.params = []
 
     @property
     def query(self):
@@ -24,12 +25,11 @@ class SQLBasicBuilder:
     def selected_fields_query(self):
         return ', '.join(map(lambda f: '{}.{}'.format(f.table_name, f.col_name), self.fields)) + ' '
 
-    def execute(self, cur, params=None):
-        if params is None:
-            params = []
-        params += [cond.val for cond in self.conditions]
+    def execute(self, cur):
+        params = [cond.val for cond in self.conditions]
+        params += self.params
         print(self.query)
-        return cur.execute(self.query, (params + list(self.pagination)))
+        return cur.execute(self.query, params)
 
     def add_selected_custom_conditions(self, query, conditions):
         first = True
@@ -200,29 +200,49 @@ class SQLLogSelect(SQLBasicSelect):
         return query
 
 
-
 class SQLCountAll(SQLBasicSelect):
-    def add_selected_fields(self, query):
-        return query + 'COUNT(*) '
+    def __init__(self, target_table):
+        super().__init__(target_table, fields=[target_table.pk])
+
+    @property
+    def selected_fields_query(self):
+        return 'COUNT(*) '
 
 
 class SQLSelect(SQLBasicSelect):
-    def add_offset_fetch(self, query):
+    def __init__(self, target_table, fields, pagination=None):
+        super().__init__(target_table, fields)
+        self.pagination = pagination
+
         if self.pagination:
-            query += 'OFFSET ? ROWS FETCH FIRST ? ROWS ONLY '
+            page = self.pagination[0]
+            page_size = self.pagination[1]
+            self.params.append(page_size * (page - 1))
+            self.params.append(page_size)
+
+    def get_offset_query(self):
+        query = ''
+        if self.pagination:
+            query = 'OFFSET ? ROWS FETCH FIRST ? ROWS ONLY '
+            page = self.pagination[0]
+            page_size = self.pagination[1]
+
+            self.params.append(page_size*(page-1))
+            self.params.append(page_size)
         return query
 
-    def add_sort(self, query):
-        if self.sort_field is not None and 0 <= self.sort_field < len(self.fields):
-            query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
-
-            if self.sort_order:
-                query += self.sort_order + ' '
-        return query
+    # def get_order_by_query(self):
+    #     query = ''
+    #     if self.sort_field is not None and 0 <= self.sort_field < len(self.fields):
+    #         query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
+    #
+    #         if self.sort_order:
+    #             query += self.sort_order + ' '
+    #     return query
 
     @property
     def query(self):
         compiled_query = super().query
-        compiled_query = self.add_sort(compiled_query)
-        compiled_query = self.add_offset_fetch(compiled_query)
+        # compiled_query += self.get_order_by_query(compiled_query)
+        compiled_query += self.get_offset_query()
         return compiled_query

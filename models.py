@@ -77,7 +77,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
             if isinstance(field, BaseField) and field.col_name == col_name:
                 return field
 
-
     @property
     def fields(self):
         if self._fields is None:
@@ -90,21 +89,15 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self._fields_no_fk = [field for field in self.fields if not isinstance(field, ForeignKeyField)]
         return self._fields_no_fk
 
-    @property
-    def mutable_fields(self):
-        return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField) and not isinstance(val, PKField)]
-
-    def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None):
+    def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None, pagination=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
-        self.select_all_fields(sql)
-        self.add_criteria(fields, values, logic_operators, compare_operators, sql)
-
+        # self.add_criteria(fields, values, logic_operators, compare_operators, sql)
         sql.execute(cur)
-        rows = cur.fetchone()[0]
 
-        if self.pagination:
-            on_page = self.pagination[1]
+        rows = cur.fetchone()[0]
+        if pagination:
+            on_page = pagination[1]
         else:
             on_page = rows
 
@@ -121,9 +114,9 @@ class BasicModel(metaclass=BasicModelMetaclass):
             field.select_col_raw(sql)
         return sql
 
-    def fetch_all(self, sort_field=None, sort_order=None):
+    def fetch_all(self, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
-        sql = SQLSelect(self, self.fields_no_fk)
+        sql = SQLSelect(self, self.fields_no_fk, pagination)
         # sql.sort_field = sort_field
         # sql.sort_order = sort_order
         sql.execute(cur)

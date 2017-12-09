@@ -23,6 +23,18 @@ jinja_helpers.register_helpers(app)
 tables = OrderedDict({model.title.lower(): model for model in models.all_models})
 pagination_choices = (10, 20, 50)
 
+'''------------'''
+'''MISC HELPERS'''
+'''------------'''
+
+
+def get_page_size():
+    choice = request.args.get('page_size', pagination_choices[0], type=misc.ge_int(1))
+    if choice not in pagination_choices:
+        choice = pagination_choices[0]
+    return choice
+
+
 '''-----------'''
 '''CONTROLLERS'''
 '''-----------'''
@@ -41,12 +53,22 @@ def catalog(table=''):
 
     table = table.lower()
 
+    # PARSE PARAMETERS
+    page_size = get_page_size()
+    page = request.args.get('page', 1, type=misc.ge_int(1))
+    query_params['page'] = page
+    query_params['page_size'] = page_size
+
     if table not in tables:
         return data
 
-    data['selected_table'] = table
-
     selected_model = tables[table]()
+
+    # PAGINATION
+    # selected_model.pagination = (page_size * (page - 1), page_size)
+    pagination = (page, page_size)
+
+    data['selected_table'] = table
 
     data['fields'] = selected_model.fields_no_fk
     # data['last_update'] = datetime.now().timestamp()
@@ -60,17 +82,14 @@ def catalog(table=''):
     # data['logic_search_operators_list'] = BasicCondition.logic_operators
     # data['compare_search_operators_list'] = BasicCondition.compare_operators
 
-    # pagination_choice = request.args.get('pagination_choice', 0, type=misc.ge_int(0))
-    page = request.args.get('page', 1, type=misc.ge_int(1))
     # sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
     # sort_order = request.args.get('sort_order', None, type=misc.sort_order)
     #
     # query_params['sort_field'] = sort_field
     # query_params['sort_order'] = sort_order
     #
-    # selected_model.pagination = (pagination_choices[pagination_choice] * (page-1), pagination_choices[pagination_choice])
-    query_params['page'] = page
-    # query_params['pagination_choice'] = pagination_choice
+
+
     #
     # if search_fields and search_vals:
     #     query_params['search_field'] = search_fields
@@ -82,9 +101,8 @@ def catalog(table=''):
     #     query_params['compare_operator'] = compare_operators
     #     query_params['search_val'] = search_vals
     # else:
-    data['entries'] = selected_model.fetch_all()
-    data['pages'] = 10
-    # data['pages'] = selected_model.get_pages()
+    data['entries'] = selected_model.fetch_all(pagination=pagination)
+    data['pages'] = selected_model.get_pages(pagination=pagination)
 
     return data
 
