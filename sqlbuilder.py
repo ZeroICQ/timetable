@@ -1,6 +1,6 @@
 from conditions import BasicCondition
 from fields import ForeignKeyField, BaseField
-
+from collections import OrderedDict
 
 class SQLBasicBuilder:
     def __init__(self, operation, target_table, fields):
@@ -9,28 +9,26 @@ class SQLBasicBuilder:
         self.fields = fields
         self.pagination = ()
         self.conditions = []
-        self.params = []
+        self.params_after_where = []
+        self.params_before_where = []
 
     @property
     def query(self):
         return self.operation + ' '
 
-    def add_condition(self, field_name, value, logic_operator, compare_operator):
+    def add_condition(self, field_name, value, compare_operator, logic_operator='AND'):
         # Exclude fields with empty values
         if not value:
             return
         self.conditions.append(BasicCondition(field_name, value, logic_operator, compare_operator))
 
-    def add_where_equal_param(self, col_name, val, logic_operator=None):
-        self.custom_conditions.append(CustomCondition(col_name, val, '=', logic_operator=logic_operator))
-
-    @property
-    def selected_fields_query(self):
-        return ', '.join(map(lambda f: f.qualified_col_name, self.fields)) + ' '
+    def add_equal_condition(self, field_name, value, logic_operator=None):
+        self.add_condition(field_name, value, '=', logic_operator)
 
     def execute(self, cur):
-        params = [cond.val for cond in self.conditions]
-        params += self.params
+        params = self.params_before_where
+        params += [cond.val for cond in self.conditions]
+        params += self.params_after_where
         print(self.query)
         return cur.execute(self.query, params)
 
@@ -67,7 +65,7 @@ class SQLBasicInsert(SQLBasicBuilder):
         query += '('
         query += ', '.join(self.fields)
         query += ') VALUES ('
-        query += ', '.join(['?' for field in self.fields])
+        query += ', '.join('?' for field in self.fields)
         query += ') '
 
         return query
@@ -93,21 +91,28 @@ class SQLLog(SQLBasicInsert):
             self.add_field(field)
 
 
-class SQLBasicUpdate(SQLBasicInsert):
-    def __init__(self, target_table, values=None):
-        super().__init__(operation='UPDATE', target_table=target_table, values=values)
+class SQLBasicUpdate(SQLBasicBuilder):
+    def __init__(self, target_table, new_fields, return_fields=None):
+        new_fields = OrderedDict(new_fields)
+        super().__init__(operation='UPDATE', target_table=target_table, fields=[field for field in new_fields])
+
+        self.new_fields = new_fields
+        self.return_fields=return_fields
+        self.params_before_where += [value for value in new_fields.values()]
 
     @property
     def query(self):
-        compiled_query = self.operation + ' ' + self.target_model.table_name + ' SET '
-        compiled_query = self.add_updating_fields(compiled_query)
-        compiled_query = self.conditions_query(compiled_query)
-        compiled_query += ' RETURNING ' + self.target_model.pk.col_name
+        compiled_query = super().query
+        compiled_query += self.target_model.table_name + ' SET '
+        compiled_query += self.updating_fields_query
+        compiled_query += self.conditions_query
+        compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
 
         return compiled_query
 
-    def add_updating_fields(self, query):
-        return query + ', '.join([field + ' = ? ' for field in self.fields])
+    @property
+    def updating_fields_query(self):
+        return ', '.join(field + ' = ? ' for field in self.fields)
 
 
 class SQLBasicDelete(SQLBasicBuilder):
@@ -132,6 +137,11 @@ class SQLBasicSelect(SQLBasicBuilder):
     @property
     def left_joins(self):
         return (field for field in self.target_model.fields if isinstance(field, ForeignKeyField))
+
+    @property
+    def selected_fields_query(self):
+        # return ', '.join(map(lambda f: f.qualified_col_name, self.fields)) + ' '
+        return ', '.join(field.qualified_col_name for field in self.fields) + ' '
 
     @property
     def query(self):
@@ -182,8 +192,8 @@ class SQLSelect(SQLBasicSelect):
         if self.pagination:
             page = self.pagination[0]
             page_size = self.pagination[1]
-            self.params.append(page_size * (page - 1))
-            self.params.append(page_size)
+            self.params_after_where.append(page_size * (page - 1))
+            self.params_after_where.append(page_size)
 
     @property
     def offset_query(self):
@@ -193,8 +203,8 @@ class SQLSelect(SQLBasicSelect):
             page = self.pagination[0]
             page_size = self.pagination[1]
 
-            self.params.append(page_size*(page-1))
-            self.params.append(page_size)
+            self.params_after_where.append(page_size * (page - 1))
+            self.params_after_where.append(page_size)
         return query
 
     @property

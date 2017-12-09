@@ -14,3 +14,7 @@
   border-radius: 5px;
   border:#FF0000 1px solid;
 }
+
+.entry {
+  cursor: pointer;
+}

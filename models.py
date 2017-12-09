@@ -51,6 +51,8 @@ class BasicModel(metaclass=BasicModelMetaclass):
         self.pk = PKField()
         self._fields = None
         self._fields_no_fk = None
+        self._fields_own = None
+        self._fields_main = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
@@ -78,6 +80,10 @@ class BasicModel(metaclass=BasicModelMetaclass):
                 return field
 
     @property
+    def main_field(self):
+        return self.pk
+
+    @property
     def fields(self):
         if self._fields is None:
             self._fields = [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
@@ -88,6 +94,19 @@ class BasicModel(metaclass=BasicModelMetaclass):
         if self._fields_no_fk is None:
             self._fields_no_fk = [field for field in self.fields if not isinstance(field, ForeignKeyField)]
         return self._fields_no_fk
+
+    @property
+    def fields_own(self):
+        if self._fields_own is None:
+            self._fields_own = [field for field in self.fields if field.table_name == self.table_name and not isinstance(field, PKField)]
+        return self._fields_own
+
+    @property
+    def fields_main(self):
+        if self._fields_main is None:
+            self._fields_main = [self.pk, self.main_field]
+
+        return self._fields_main
 
     def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None, pagination=None):
         cur = get_cursor()
@@ -102,17 +121,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
             on_page = rows
 
         return ceil(rows/on_page)
-    # TODO: delete
-    # def select_all_fields_raw(self, sql=None):
-    #     if sql is None:
-    #         sql = SQLSelect(target_table=self)
-    #
-    #     if self.pagination is not None:
-    #         sql.pagination = self.pagination
-    #
-    #     for field in self.mutable_fields:
-    #         field.select_col_raw(sql)
-    #     return sql
 
     def fetch_all(self, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
@@ -124,7 +132,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     def add_criteria(self, fields_names, values, logic_operators, compare_operators, sql):
         # TODO: Discover whether there is a better way to iterate over map
-        for r in map(sql.add_condition, fields_names, values, logic_operators, compare_operators):
+        for r in map(sql.add_condition, fields_names, values, compare_operators, logic_operators):
             pass
 
     def fetch_all_by_criteria(self, fields, values, logic_operators, compare_operators, sort_field=None, sort_order=None, pagination=None):
@@ -136,56 +144,61 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         return cur.fetchall()
 
-    def fetch_raw_by_pk(self, pk_val):
+    def fetch_own_by_pk(self, pk_val):
         cur = get_cursor()
-        sql = self.select_all_fields_raw()
-        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql = SQLSelect(self, self.fields_own)
+        sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         return cur.fetchone()
 
-    def fetch_by_pk(self, pk_val):
+    def fetch_all_main(self):
         cur = get_cursor()
-        sql = self.select_all_fields()
-        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql = SQLSelect(self, self.fields_main)
         sql.execute(cur)
-        return cur.fetchone()
+        return cur.fetchall()
 
-    def log_action(self, cursor, action, pk):
-        actions = {'delete': 1,
-                   'modify': 2}
-
-        log_table = LogModel()
-        log_sql = SQLLog(target_table=log_table, values=[actions[action], self.table_name, pk])
-        log_sql.execute(cursor)
-
-    def update(self, fields, values, pk_val):
+    # def fetch_by_pk(self, pk_val):
+    #     cur = get_cursor()
+    #     sql = self.select_all_fields()
+    #     sql.add_where_equal_param(self.pk.col_name, pk_val)
+    #     sql.execute(cur)
+    #     return cur.fetchone()
+    #
+    # def log_action(self, cursor, action, pk):
+    #     actions = {'delete': 1,
+    #                'modify': 2}
+    #
+    #     log_table = LogModel()
+    #     log_sql = SQLLog(target_table=log_table, values=[actions[action], self.table_name, pk])
+    #     log_sql.execute(cursor)
+    #
+    def update(self, return_fields, new_fields, pk_val):
         cur = get_cursor()
-        sql = SQLBasicUpdate(self, values)
-        sql = self.select_all_fields_raw(sql)
-        sql.add_where_equal_param(self.pk.col_name, pk_val)
+        sql = SQLBasicUpdate(self, new_fields, return_fields=return_fields)
+        sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
-        pk = cur.fetchone()[0]
+        result_fields = cur.fetchone()
 
-        self.log_action(cursor=cur, pk=pk, action='modify')
+        # self.log_action(cursor=cur, pk=pk, action='modify')
         cur.transaction.commit()
-        return pk
-
-    def delete_by_id(self, pk_val):
-        cur = get_cursor()
-        sql = SQLBasicDelete(self)
-        sql.add_where_equal_param(self.pk.col_name, pk_val)
-        sql.execute(cur)
-        self.log_action(cursor=cur, pk=pk_val, action='delete')
-        cur.transaction.commit()
-
-    def insert(self, values):
-        cur = get_cursor()
-        sql = SQLBasicInsert(self, values=values)
-        sql = self.select_all_fields_raw(sql)
-        sql.execute(cur)
-        pk = cur.fetchone()[0]
-        cur.transaction.commit()
-        return pk
+        return result_fields
+    #
+    # def delete_by_id(self, pk_val):
+    #     cur = get_cursor()
+    #     sql = SQLBasicDelete(self)
+    #     sql.add_where_equal_param(self.pk.col_name, pk_val)
+    #     sql.execute(cur)
+    #     self.log_action(cursor=cur, pk=pk_val, action='delete')
+    #     cur.transaction.commit()
+    #
+    # def insert(self, values):
+    #     cur = get_cursor()
+    #     sql = SQLBasicInsert(self, values=values)
+    #     sql = self.select_all_fields_raw(sql)
+    #     sql.execute(cur)
+    #     pk = cur.fetchone()[0]
+    #     cur.transaction.commit()
+    #     return pk
 
 
 class AudienceModel(BasicModel):
@@ -196,6 +209,10 @@ class AudienceModel(BasicModel):
         super().__init__()
         self.name = StringField(title='Номер', col_name='name')
 
+    @property
+    def main_field(self):
+        return self.name
+
 
 class GroupsModel(BasicModel):
     title = 'Группы'
@@ -204,6 +221,10 @@ class GroupsModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.name = StringField(title='Группа', col_name='name')
+
+    @property
+    def main_field(self):
+        return self.name
 
 
 class LessonsModel(BasicModel):
@@ -215,6 +236,10 @@ class LessonsModel(BasicModel):
         self.name = StringField(title='Название', col_name='name')
         self.order_number = IntegerField(title='Порядковый номер', col_name='order_number')
 
+    @property
+    def main_field(self):
+        return self.name
+
 
 class LessonTypesModel(BasicModel):
     title = 'Тип пары'
@@ -224,7 +249,9 @@ class LessonTypesModel(BasicModel):
         super().__init__()
         self.name = StringField(title='Название', col_name='name')
 
-
+    @property
+    def main_field(self):
+        return self.name
 
 
 class SubjectsModel(BasicModel):
@@ -235,6 +262,10 @@ class SubjectsModel(BasicModel):
         super().__init__()
         self.name = StringField(title='Предмет', col_name='name')
 
+    @property
+    def main_field(self):
+        return self.name
+
 
 class SubjectGroupModel(BasicModel):
     title = 'Учебный план'
@@ -242,8 +273,8 @@ class SubjectGroupModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
-        self.groups = ForeignKeyField(title='ID группы', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Название группы'),))
+        self.subject = ForeignKeyField(title='Предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.groups = ForeignKeyField(title='Группа', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Название группы'),))
 
 
 class SubjectTeacherModel(BasicModel):
@@ -252,8 +283,8 @@ class SubjectTeacherModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
-        self.teacher = ForeignKeyField(title='ID учителя', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
+        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
 
 
 class TeachersModel(BasicModel):
@@ -263,6 +294,10 @@ class TeachersModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.name = StringField('ФИО', col_name='name')
+
+    @property
+    def main_field(self):
+        return self.name
 
 
 class WeekdaysModel(BasicModel):
@@ -274,6 +309,9 @@ class WeekdaysModel(BasicModel):
         self.name = StringField('Название', col_name='name')
         self.order_number = IntegerField('Порядковый номер', col_name='order_number')
 
+    @property
+    def main_field(self):
+        return self.name
 
 
 class SchedItemsModel(BasicModel):
@@ -282,13 +320,14 @@ class SchedItemsModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.lesson = ForeignKeyField(title='ID пары', col_name='lesson_id', target_model=LessonsModel, target_fields=(('name', 'Пара'),))
-        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Предмет'),))
-        self.audience = ForeignKeyField(title='ID аудитории', col_name='audience_id', target_model=AudienceModel, target_fields=(('name', 'Аудитория'),))
-        self.group = ForeignKeyField(title='ID группы', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Группа'),))
-        self.teacher = ForeignKeyField(title='ID учителя', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
-        self.type = ForeignKeyField(title='ID типа пары', col_name='type_id', target_model=LessonTypesModel, target_fields=(('name', 'Тип'),))
-        self.weekday = ForeignKeyField(title='ID дня недели', col_name='weekday_id', target_model=WeekdaysModel, target_fields=(('name', 'День недели'),))
+        self.lesson = ForeignKeyField(title='Пара', col_name='lesson_id', target_model=LessonsModel, target_fields=(('name', 'Пара'),))
+        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Предмет'),))
+        self.audience = ForeignKeyField(title='Аудитория', col_name='audience_id', target_model=AudienceModel, target_fields=(('name', 'Аудитория'),))
+        self.group = ForeignKeyField(title='Группа', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Группа'),))
+        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
+        self.type = ForeignKeyField(title='Типы пары', col_name='type_id', target_model=LessonTypesModel, target_fields=(('name', 'Тип'),))
+        self.weekday = ForeignKeyField(title='День недели', col_name='weekday_id', target_model=WeekdaysModel, target_fields=(('name', 'День недели'),))
+
 
 class LogStatusModel(BasicModel):
     title = 'Статус записи'

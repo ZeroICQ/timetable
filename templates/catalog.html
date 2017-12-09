@@ -42,28 +42,16 @@
               {% endif %}
             </th>
           {% endfor %}
-            <th>
-              Действия
-            </th>
         </thead>
 
         {% for entry in entries %}
-          <tr data-pk="{{ entry[0] }}" class="entry">
-          {% for field in entry %}
-            <td>
-              {{ field }}
-            </td>
-          {% endfor %}
-            <td>
-              <a href="{{ url_for('edit', table=selected_table, pk=entry[0]) }}" target="_blank">
-                Редактировать
-              </a>
-              <br>
-              <a href="{{ url_for('delete', table=selected_table, pk=entry[0]) }}" target="_blank">
-                Удалить
-              </a>
-            </td>
-        </tr>
+            <tr data-href="{{ url_for('edit', table=selected_table, pk=entry[0]) }}" data-pk="{{ entry[0] }}" class="entry">
+            {% for field in entry %}
+              <td>
+                {{ field }}
+              </td>
+            {% endfor %}
+            </tr>
         {% endfor %}
       </table>
 

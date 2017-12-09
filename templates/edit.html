@@ -7,7 +7,7 @@
       <div class="form-group">
         {% if values is defined %}
           {% for field in fields %}
-            {{ form_field(field, values[loop.index0], name=loop.index0) }}
+            {{ field.get_html(values[loop.index0]) }}
           {% endfor %}
         {% endif %}
       </div>

@@ -1,3 +1,6 @@
+import fields_html
+
+
 class BaseField:
     def __init__(self, title, col_name, table_name=None):
         self.title = title
@@ -11,14 +14,21 @@ class BaseField:
     def qualified_col_name(self):
         return '{}.{}'.format(self.table_name, self.col_name)
 
+    def get_html(self, value):
+        return fields_html.string_field(self, value)
+
 
 class IntegerField(BaseField):
-    pass
+    def get_html(self, value):
+        return fields_html.int_field(self, value)
 
 
 class PKField(IntegerField):
     def __init__(self, title='ID', col_name='ID'):
         super().__init__(title, col_name)
+
+    def get_html(self, value):
+        return fields_html.int_field(self, value)
 
 
 class ForeignKeyField(BaseField):
@@ -28,6 +38,11 @@ class ForeignKeyField(BaseField):
         self.target_pk = target_pk
         self.target_fields = target_fields
         self.target_model = target_model
+
+    def get_html(self, value):
+        model = self.target_model()
+        choices = model.fetch_all_main()
+        return fields_html.fk_field(self, value, choices=choices)
 
 
 class StringField(BaseField):

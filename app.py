@@ -109,46 +109,24 @@ def catalog(table=''):
 @misc.templated('edit.html')
 def edit(table=None, pk=None):
     data = {}
-    tables = tables = get_tables()
 
-    if not (0 <= table < len(tables)):
+    if table not in tables:
         return data
 
     model = tables[table]()
-    fields = model.mutable_fields
+    fields = model.fields_own
     data['fields'] = fields
 
     if request.method == 'POST':
-        values = [request.form.get(str(i), None) for i in range(len(fields))]
-        model.update(fields, values, pk)
+        new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
+        data['values'] = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
+
         action = request.form.get('action', None)
         if action == 'close':
             data['close_window'] = True
             return data
-
-    data['values'] = model.fetch_raw_by_pk(pk)
-
-    return data
-
-
-@app.route("/<table>/delete/<int:pk>", methods=['GET', 'POST'])
-@misc.templated('delete.html')
-def delete(table=None, pk=None):
-    data = {}
-    tables = tables = get_tables()
-
-    if not (0 <= table < len(tables)):
-        return data
-
-    model = tables[table]()
-    fields = model.mutable_fields
-    data['fields'] = fields
-    data['values'] = model.fetch_raw_by_pk(pk)
-
-    if request.method == 'POST':
-        model.delete_by_id(pk_val=pk)
-        data['status'] = 'ok'
-        data['close_window'] = True
+    else:
+        data['values'] = model.fetch_own_by_pk(pk)
 
     return data
 

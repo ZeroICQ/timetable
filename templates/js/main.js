@@ -52,6 +52,10 @@ $(document).ready(function() {
         }
     });
 
+    $('tr[data-href]').on("click", function() {
+        window.open($(this).data('href'));
+    });
+
     //ACTION LINKS
 //    $(document).on('click', '.record-action-link', function(e) {
 //        e.preventDefault();
