@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, render_template
-
+import conditions
 
 def ge_int(lbound):
     def f(val):
@@ -20,6 +20,25 @@ def sort_order(val):
 
     return val
 
+
+def model_field(model):
+    def check_function(field_name):
+        if field_name not in [field.qualified_col_name for field in model.fields_no_fk]:
+            raise ValueError
+        return field_name
+    return check_function
+
+
+def logic_operators(val):
+    if val not in conditions.BasicCondition.logic_operators:
+        raise ValueError
+    return val
+
+
+def compare_operators(val):
+    if val not in conditions.BasicCondition.compare_operators:
+        raise ValueError
+    return val
 
 def templated(template=None):
     def decorator(f):

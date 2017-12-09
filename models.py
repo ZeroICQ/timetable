@@ -3,7 +3,7 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog, SQLLogSelect
 from math import ceil
-from conditions import BasicCondition, CustomCondition, GroupCondition
+from conditions import BasicCondition
 from datetime import datetime
 
 def get_db():
@@ -102,17 +102,17 @@ class BasicModel(metaclass=BasicModelMetaclass):
             on_page = rows
 
         return ceil(rows/on_page)
-
-    def select_all_fields_raw(self, sql=None):
-        if sql is None:
-            sql = SQLSelect(target_table=self)
-
-        if self.pagination is not None:
-            sql.pagination = self.pagination
-
-        for field in self.mutable_fields:
-            field.select_col_raw(sql)
-        return sql
+    # TODO: delete
+    # def select_all_fields_raw(self, sql=None):
+    #     if sql is None:
+    #         sql = SQLSelect(target_table=self)
+    #
+    #     if self.pagination is not None:
+    #         sql.pagination = self.pagination
+    #
+    #     for field in self.mutable_fields:
+    #         field.select_col_raw(sql)
+    #     return sql
 
     def fetch_all(self, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
@@ -122,19 +122,24 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         return cur.fetchall()
 
-    def add_criteria(self, fields, vals, logic_operators, compare_operators, sql):
-        if not fields or not vals:
-            return
+    def add_criteria(self, fields_names, values, logic_operators, compare_operators, sql):
+        # TODO: delete
+        # if not fields or not values:
+        #     return
 
-        if len(fields) == len(vals):
-            for param in zip(fields, vals, logic_operators, compare_operators):
-                if param[1]:
-                    sql.add_condition(BasicCondition(param[0], param[1], param[2], param[3]))
+        # TODO: Discover whether there is a better way to iterate over map
+        for r in map(sql.add_condition, fields_names, values, logic_operators, compare_operators):
+            pass
+        # TODO: delete
+        # if len(fields_names) == len(values):
+        #     for param in zip(fields_names, values, logic_operators, compare_operators):
+        #         if param[1]:
+        #             sql.add_condition(BasicCondition(param[0], param[1], param[2], param[3]))
 
-    def fetch_all_by_criteria(self, fields, vals, logic_operators, compare_operators, sort_field, sort_order):
+    def fetch_all_by_criteria(self, fields, values, logic_operators, compare_operators, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
-        sql = self.select_all_fields()
-        self.add_criteria(fields, vals, logic_operators, compare_operators, sql)
+        sql = SQLSelect(self, self.fields_no_fk, pagination=pagination)
+        self.add_criteria(fields, values, logic_operators, compare_operators, sql)
         sql.sort_field = sort_field
         sql.sort_order = sort_order
         sql.execute(cur)

@@ -7,6 +7,9 @@ class BaseField:
     def select_col_raw(self, sql_builder):
         sql_builder.add_field(self.col_name)
 
+    @property
+    def qualified_col_name(self):
+        return '{}.{}'.format(self.table_name, self.col_name)
 
 class IntegerField(BaseField):
     pass

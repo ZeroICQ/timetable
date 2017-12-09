@@ -1,4 +1,4 @@
-from conditions import CustomCondition
+from conditions import BasicCondition
 from fields import ForeignKeyField, BaseField
 
 
@@ -15,15 +15,18 @@ class SQLBasicBuilder:
     def query(self):
         return self.operation + ' '
 
-    def add_condition(self, cond):
-        self.conditions.append(cond)
+    def add_condition(self, field_name, value, logic_operator, compare_operator):
+        # Exclude fields with empty values
+        if not value:
+            return
+        self.conditions.append(BasicCondition(field_name, value, logic_operator, compare_operator))
 
     def add_where_equal_param(self, col_name, val, logic_operator=None):
         self.custom_conditions.append(CustomCondition(col_name, val, '=', logic_operator=logic_operator))
 
     @property
     def selected_fields_query(self):
-        return ', '.join(map(lambda f: '{}.{}'.format(f.table_name, f.col_name), self.fields)) + ' '
+        return ', '.join(map(lambda f: f.qualified_col_name, self.fields)) + ' '
 
     def execute(self, cur):
         params = [cond.val for cond in self.conditions]
@@ -31,54 +34,24 @@ class SQLBasicBuilder:
         print(self.query)
         return cur.execute(self.query, params)
 
-    def add_selected_custom_conditions(self, query, conditions):
-        first = True
-        for cond in conditions:
-            if first:
-                first = False
-            else:
-                query += cond.logic_operator + ' '
-
-            query += '{table_name}.{field_name} {operator} ? '.format(
-                table_name=self.target_model.table_name,
-                field_name=cond.field_name,
-                operator=cond.compare_operator)
-
-        return query
-
-    def add_selected_group(self, query, conditions):
-        query += '('
-        query = self.add_selected_custom_conditions(query, conditions)
-        query += ') '
-        return query
-
-    def add_selected_conditions(self, query):
-        if self.conditions or self.custom_conditions or self.group_conditions:
+    def get_conditions_query(self):
+        query = ''
+        if self.conditions:
             query += "WHERE "
 
+        # first = True
+        # TODO: delete
+        # for cond in self.conditions:
+        #     if first:
+        #         first = False
+        #     else:
+        #         query += cond.logic_operator + ' '
+        #
+        #     query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
         first = True
         for cond in self.conditions:
-            if not (0 <= cond.field < len(self.fields)):
-                continue
-
-            if first:
-                first = False
-            else:
-                query += cond.logic_operator + ' '
-
-            query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
-
-        query = self.add_selected_custom_conditions(query, self.custom_conditions)
-
-        first = not self.custom_conditions
-
-        for group in self.group_conditions:
-            if first:
-                first = False
-            else:
-                query += group.logic_operator + ' '
-
-            query = self.add_selected_group(query, group.conditions)
+            query += cond.get_query_str(not first)
+            first = False
 
         return query
 
@@ -136,7 +109,7 @@ class SQLBasicUpdate(SQLBasicInsert):
     def query(self):
         compiled_query = self.operation + ' ' + self.target_model.table_name + ' SET '
         compiled_query = self.add_updating_fields(compiled_query)
-        compiled_query = self.add_selected_conditions(compiled_query)
+        compiled_query = self.get_conditions_query(compiled_query)
         compiled_query += ' RETURNING ' + self.target_model.pk.col_name
 
         return compiled_query
@@ -154,7 +127,7 @@ class SQLBasicDelete(SQLBasicBuilder):
     def query(self):
         compiled_query = super().query
         compiled_query += 'from ' + self.target_model.table_name + ' '
-        compiled_query = self.add_selected_conditions(compiled_query)
+        compiled_query = self.get_conditions_query(compiled_query)
         return compiled_query
 
 
@@ -182,13 +155,13 @@ class SQLBasicSelect(SQLBasicBuilder):
                 from_table=self.target_model.table_name
             )
 
-        # compiled_query = self.add_selected_conditions(compiled_query)
+        compiled_query += self.get_conditions_query()
         return compiled_query
 
 
 class SQLLogSelect(SQLBasicSelect):
-    def add_selected_conditions(self, query):
-        query = super().add_selected_conditions(query)
+    def get_conditions_query(self, query):
+        query = super().get_conditions_query(query)
         subselect = 'AND {table_name}.{time_col_name} = (select max({tmp_table_name}.{time_col_name}) from {table_name} {tmp_table_name} ' \
                     'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(
                         tmp_table_name=self.target_model.table_name + '1',

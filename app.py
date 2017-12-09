@@ -65,7 +65,6 @@ def catalog(table=''):
     selected_model = tables[table]()
 
     # PAGINATION
-    # selected_model.pagination = (page_size * (page - 1), page_size)
     pagination = (page, page_size)
 
     data['selected_table'] = table
@@ -73,14 +72,15 @@ def catalog(table=''):
     data['fields'] = selected_model.fields_no_fk
     # data['last_update'] = datetime.now().timestamp()
 
-    # search_fields = request.args.getlist('search_field', type=misc.ge_int(0))
-    # search_vals = request.args.getlist('search_val')
+    # SEARCH
+    search_fields = request.args.getlist('search_field', type=misc.model_field(selected_model))
+    search_vals = request.args.getlist('search_val')
 
-    # logic_operators = request.args.getlist('logic_operator', type=misc.ge_int(0))
-    # compare_operators = request.args.getlist('compare_operator', type=misc.ge_int(0))
+    logic_operators = request.args.getlist('logic_operator', type=misc.logic_operators)
+    compare_operators = request.args.getlist('compare_operator', type=misc.compare_operators)
 
-    # data['logic_search_operators_list'] = BasicCondition.logic_operators
-    # data['compare_search_operators_list'] = BasicCondition.compare_operators
+    data['logic_search_operators_list'] = BasicCondition.logic_operators
+    data['compare_search_operators_list'] = BasicCondition.compare_operators
 
     # sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
     # sort_order = request.args.get('sort_order', None, type=misc.sort_order)
@@ -91,18 +91,20 @@ def catalog(table=''):
 
 
     #
-    # if search_fields and search_vals:
-    #     query_params['search_field'] = search_fields
-    #     query_params['search_val'] = search_vals
+    if search_fields and search_vals:
+        query_params['search_field'] = search_fields
+        query_params['search_val'] = search_vals
     #     data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
     #                                                            compare_operators, sort_field, sort_order)
-    #     data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
-    #     query_params['logic_operator'] = logic_operators
-    #     query_params['compare_operator'] = compare_operators
+        data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
+                                                               compare_operators)
+        data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
+        query_params['logic_operator'] = logic_operators
+        query_params['compare_operator'] = compare_operators
     #     query_params['search_val'] = search_vals
-    # else:
-    data['entries'] = selected_model.fetch_all(pagination=pagination)
-    data['pages'] = selected_model.get_pages(pagination=pagination)
+    else:
+        data['entries'] = selected_model.fetch_all(pagination=pagination)
+        data['pages'] = selected_model.get_pages(pagination=pagination)
 
     return data
 
