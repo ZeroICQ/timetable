@@ -117,31 +117,22 @@ class BasicModel(metaclass=BasicModelMetaclass):
     def fetch_all(self, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
         sql = SQLSelect(self, self.fields_no_fk, pagination)
-        # sql.sort_field = sort_field
-        # sql.sort_order = sort_order
+        sql.sort_field = sort_field
+        sql.sort_order = sort_order
         sql.execute(cur)
         return cur.fetchall()
 
     def add_criteria(self, fields_names, values, logic_operators, compare_operators, sql):
-        # TODO: delete
-        # if not fields or not values:
-        #     return
-
         # TODO: Discover whether there is a better way to iterate over map
         for r in map(sql.add_condition, fields_names, values, logic_operators, compare_operators):
             pass
-        # TODO: delete
-        # if len(fields_names) == len(values):
-        #     for param in zip(fields_names, values, logic_operators, compare_operators):
-        #         if param[1]:
-        #             sql.add_condition(BasicCondition(param[0], param[1], param[2], param[3]))
 
     def fetch_all_by_criteria(self, fields, values, logic_operators, compare_operators, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
         sql = SQLSelect(self, self.fields_no_fk, pagination=pagination)
         self.add_criteria(fields, values, logic_operators, compare_operators, sql)
-        sql.sort_field = sort_field
         sql.sort_order = sort_order
+        sql.sort_field = sort_field
         sql.execute(cur)
         return cur.fetchall()
 

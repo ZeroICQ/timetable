@@ -34,20 +34,12 @@ class SQLBasicBuilder:
         print(self.query)
         return cur.execute(self.query, params)
 
-    def get_conditions_query(self):
+    @property
+    def conditions_query(self):
         query = ''
         if self.conditions:
             query += "WHERE "
 
-        # first = True
-        # TODO: delete
-        # for cond in self.conditions:
-        #     if first:
-        #         first = False
-        #     else:
-        #         query += cond.logic_operator + ' '
-        #
-        #     query += '{0} {1} ? '.format(self.fields[cond.field], cond.compare_operator)
         first = True
         for cond in self.conditions:
             query += cond.get_query_str(not first)
@@ -109,7 +101,7 @@ class SQLBasicUpdate(SQLBasicInsert):
     def query(self):
         compiled_query = self.operation + ' ' + self.target_model.table_name + ' SET '
         compiled_query = self.add_updating_fields(compiled_query)
-        compiled_query = self.get_conditions_query(compiled_query)
+        compiled_query = self.conditions_query(compiled_query)
         compiled_query += ' RETURNING ' + self.target_model.pk.col_name
 
         return compiled_query
@@ -127,15 +119,15 @@ class SQLBasicDelete(SQLBasicBuilder):
     def query(self):
         compiled_query = super().query
         compiled_query += 'from ' + self.target_model.table_name + ' '
-        compiled_query = self.get_conditions_query(compiled_query)
+        compiled_query = self.conditions_query(compiled_query)
         return compiled_query
 
 
 class SQLBasicSelect(SQLBasicBuilder):
-    def __init__(self, target_table, fields):
+    def __init__(self, target_table, fields, sort_field=None, sort_order=None):
         super().__init__('SELECT', target_table, fields)
-        self.sort_field = None
-        self.sort_order = None
+        self.sort_field = sort_field
+        self.sort_order = sort_order
 
     @property
     def left_joins(self):
@@ -155,13 +147,13 @@ class SQLBasicSelect(SQLBasicBuilder):
                 from_table=self.target_model.table_name
             )
 
-        compiled_query += self.get_conditions_query()
+        compiled_query += self.conditions_query
         return compiled_query
 
 
 class SQLLogSelect(SQLBasicSelect):
-    def get_conditions_query(self, query):
-        query = super().get_conditions_query(query)
+    def conditions_query(self, query):
+        query = super().conditions_query(query)
         subselect = 'AND {table_name}.{time_col_name} = (select max({tmp_table_name}.{time_col_name}) from {table_name} {tmp_table_name} ' \
                     'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(
                         tmp_table_name=self.target_model.table_name + '1',
@@ -193,7 +185,8 @@ class SQLSelect(SQLBasicSelect):
             self.params.append(page_size * (page - 1))
             self.params.append(page_size)
 
-    def get_offset_query(self):
+    @property
+    def offset_query(self):
         query = ''
         if self.pagination:
             query = 'OFFSET ? ROWS FETCH FIRST ? ROWS ONLY '
@@ -204,18 +197,19 @@ class SQLSelect(SQLBasicSelect):
             self.params.append(page_size)
         return query
 
-    # def get_order_by_query(self):
-    #     query = ''
-    #     if self.sort_field is not None and 0 <= self.sort_field < len(self.fields):
-    #         query += 'ORDER BY ' + self.fields[self.sort_field] + ' '
-    #
-    #         if self.sort_order:
-    #             query += self.sort_order + ' '
-    #     return query
+    @property
+    def sort_query(self):
+        query = ''
+        if self.sort_field is not None:
+            query += 'ORDER BY ' + self.sort_field + ' '
+
+            if self.sort_order:
+                query += self.sort_order + ' '
+        return query
 
     @property
     def query(self):
         compiled_query = super().query
-        # compiled_query += self.get_order_by_query(compiled_query)
-        compiled_query += self.get_offset_query()
+        compiled_query += self.sort_query
+        compiled_query += self.offset_query
         return compiled_query

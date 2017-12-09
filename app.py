@@ -6,6 +6,7 @@ from flask import url_for
 from flask import jsonify
 import models
 import misc
+import type_checkers
 import jinja_helpers
 from conditions import BasicCondition
 from datetime import  datetime
@@ -29,7 +30,7 @@ pagination_choices = (10, 20, 50)
 
 
 def get_page_size():
-    choice = request.args.get('page_size', pagination_choices[0], type=misc.ge_int(1))
+    choice = request.args.get('page_size', pagination_choices[0], type=type_checkers.ge_int(1))
     if choice not in pagination_choices:
         choice = pagination_choices[0]
     return choice
@@ -55,7 +56,7 @@ def catalog(table=''):
 
     # PARSE PARAMETERS
     page_size = get_page_size()
-    page = request.args.get('page', 1, type=misc.ge_int(1))
+    page = request.args.get('page', 1, type=type_checkers.ge_int(1))
     query_params['page'] = page
     query_params['page_size'] = page_size
 
@@ -73,37 +74,32 @@ def catalog(table=''):
     # data['last_update'] = datetime.now().timestamp()
 
     # SEARCH
-    search_fields = request.args.getlist('search_field', type=misc.model_field(selected_model))
+    search_fields = request.args.getlist('search_field', type=type_checkers.model_field(selected_model))
     search_vals = request.args.getlist('search_val')
 
-    logic_operators = request.args.getlist('logic_operator', type=misc.logic_operators)
-    compare_operators = request.args.getlist('compare_operator', type=misc.compare_operators)
+    logic_operators = request.args.getlist('logic_operator', type=type_checkers.logic_operators)
+    compare_operators = request.args.getlist('compare_operator', type=type_checkers.compare_operators)
 
     data['logic_search_operators_list'] = BasicCondition.logic_operators
     data['compare_search_operators_list'] = BasicCondition.compare_operators
 
-    # sort_field = request.args.get('sort_field', None, type=misc.ge_int(0))
-    # sort_order = request.args.get('sort_order', None, type=misc.sort_order)
-    #
-    # query_params['sort_field'] = sort_field
-    # query_params['sort_order'] = sort_order
-    #
+    # SORTING
+    sort_field = request.args.get('sort_field', None, type=type_checkers.model_field(selected_model))
+    sort_order = request.args.get('sort_order', None, type=type_checkers.sort_order)
 
+    query_params['sort_field'] = sort_field
+    query_params['sort_order'] = sort_order
 
-    #
     if search_fields and search_vals:
         query_params['search_field'] = search_fields
         query_params['search_val'] = search_vals
-    #     data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
-    #                                                            compare_operators, sort_field, sort_order)
         data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
-                                                               compare_operators)
+                                                               compare_operators, sort_field, sort_order, pagination)
         data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
         query_params['logic_operator'] = logic_operators
         query_params['compare_operator'] = compare_operators
-    #     query_params['search_val'] = search_vals
     else:
-        data['entries'] = selected_model.fetch_all(pagination=pagination)
+        data['entries'] = selected_model.fetch_all(sort_field, sort_order, pagination=pagination)
         data['pages'] = selected_model.get_pages(pagination=pagination)
 
     return data

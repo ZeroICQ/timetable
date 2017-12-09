@@ -15,8 +15,8 @@
         <thead>
           {% for field in fields %}
             <th>
-              {% set link = modify_query(query_params, sort_field=field.col_name, sort_order='ASC') %}
-              {% if query_params['sort_field'] is defined and query_params['sort_field'] == field.col_name %}
+              {% set link = modify_query(query_params, sort_field=field.qualified_col_name, sort_order='ASC') %}
+              {% if query_params['sort_field'] is defined and query_params['sort_field'] == field.qualified_col_name %}
                 {% set sort_curr_field = true %}
               {% else %}
                 {% set sort_curr_field = false %}
@@ -30,7 +30,7 @@
                 {% endif %}
               {% endif %}
 
-              <a href="{{ link }}" class="field_title {% if query_params['sort_field'] is defined and  query_params['sort_field'] == field.col_name %} active {% endif %}">
+              <a href="{{ link }}" class="field_title {% if query_params['sort_field'] is defined and  query_params['sort_field'] == field.qualified_col_name %} active {% endif %}">
                 {{ field.title }}
               </a>
               {% if sort_curr_field %}

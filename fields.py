@@ -11,6 +11,7 @@ class BaseField:
     def qualified_col_name(self):
         return '{}.{}'.format(self.table_name, self.col_name)
 
+
 class IntegerField(BaseField):
     pass
 
@@ -27,16 +28,6 @@ class ForeignKeyField(BaseField):
         self.target_pk = target_pk
         self.target_fields = target_fields
         self.target_model = target_model
-
-    # def select_col(self, sql_builder):
-    #     for field in self.target_fields:
-    #         sql_builder.add_field(field[0], self.target_table)
-    #
-    #     sql_builder.add_left_join(self)
-    #
-    # @property
-    # def title(self):
-    #     return [target_field[1] for target_field in self.target_fields]
 
 
 class StringField(BaseField):
