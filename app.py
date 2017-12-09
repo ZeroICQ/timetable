@@ -48,7 +48,7 @@ def catalog(table=''):
 
     selected_model = tables[table]()
 
-    data['fields'] = selected_model.fields
+    data['fields'] = selected_model.fields_no_fk
     # data['last_update'] = datetime.now().timestamp()
 
     # search_fields = request.args.getlist('search_field', type=misc.ge_int(0))

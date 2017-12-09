@@ -47,10 +47,10 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     def __init__(self):
         super().__init__()
-        print('init base start')
         self.pagination = None
         self.pk = PKField()
-        print('init base end')
+        self._fields = None
+        self._fields_no_fk = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
@@ -65,7 +65,8 @@ class BasicModel(metaclass=BasicModelMetaclass):
                     foreign_field = model.get_field_by_col_name(col_name)
                     foreign_field.title = colt_title
                     resolved_fields.append(foreign_field)
-            elif isinstance(field, BaseField):
+
+            if isinstance(field, BaseField):
                 field.table_name = self.table_name
 
         for field in resolved_fields:
@@ -79,7 +80,15 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     @property
     def fields(self):
-        return [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
+        if self._fields is None:
+            self._fields = [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
+        return self._fields
+
+    @property
+    def fields_no_fk(self):
+        if self._fields_no_fk is None:
+            self._fields_no_fk = [field for field in self.fields if not isinstance(field, ForeignKeyField)]
+        return self._fields_no_fk
 
     @property
     def mutable_fields(self):
@@ -101,17 +110,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
         return ceil(rows/on_page)
 
-    def select_all_fields(self, sql=None):
-        if sql is None:
-            sql = SQLSelect(target_table=self)
-
-        if self.pagination is not None:
-            sql.pagination = self.pagination
-
-        for field in self.fields:
-            field.select_col(sql)
-        return sql
-
     def select_all_fields_raw(self, sql=None):
         if sql is None:
             sql = SQLSelect(target_table=self)
@@ -125,9 +123,9 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     def fetch_all(self, sort_field=None, sort_order=None):
         cur = get_cursor()
-        sql = self.select_all_fields()
-        sql.sort_field = sort_field
-        sql.sort_order = sort_order
+        sql = SQLSelect(self, self.fields_no_fk)
+        # sql.sort_field = sort_field
+        # sql.sort_order = sort_order
         sql.execute(cur)
         return cur.fetchall()
 
@@ -238,19 +236,6 @@ class LessonTypesModel(BasicModel):
         self.name = StringField(title='Название', col_name='name')
 
 
-class SchedItemsModel(BasicModel):
-    title = 'Расписание'
-    table_name = 'sched_items'
-
-    def __init__(self):
-        super().__init__()
-        self.lesson = ForeignKeyField(col_name='lesson_id', target_table='lessons', target_fields=(('name', 'Пара'),), target_title='Предмет')
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Предмет'),))
-        self.audience = ForeignKeyField(col_name='audience_id', target_table='audiences', target_fields=(('name', 'Аудитория'),))
-        self.group = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name', 'Группа'),))
-        self.teacher = ForeignKeyField(col_name='teacher_id', target_table='teachers', target_fields=(('name', 'ФИО Преподавателя'),))
-        self.type = ForeignKeyField(col_name='type_id', target_table='lesson_types', target_fields=(('name', 'Тип'),))
-        self.weekday = ForeignKeyField(col_name='weekday_id', target_table='weekdays', target_fields=(('name', 'День недели'),))
 
 
 class SubjectsModel(BasicModel):
@@ -268,8 +253,8 @@ class SubjectGroupModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.subject = ForeignKeyField(col_name='subject_id', target_table='subjects', target_fields=(('name', 'Название предмета'),))
-        self.groups = ForeignKeyField(col_name='group_id', target_table='groups', target_fields=(('name','Название группы'),))
+        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.groups = ForeignKeyField(title='ID группы', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Название группы'),))
 
 
 class SubjectTeacherModel(BasicModel):
@@ -300,6 +285,21 @@ class WeekdaysModel(BasicModel):
         self.name = StringField('Название', col_name='name')
         self.order_number = IntegerField('Порядковый номер', col_name='order_number')
 
+
+
+class SchedItemsModel(BasicModel):
+    title = 'Расписание'
+    table_name = 'sched_items'
+
+    def __init__(self):
+        super().__init__()
+        self.lesson = ForeignKeyField(title='ID пары', col_name='lesson_id', target_model=LessonsModel, target_fields=(('name', 'Пара'),))
+        self.subject = ForeignKeyField(title='ID предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Предмет'),))
+        self.audience = ForeignKeyField(title='ID аудитории', col_name='audience_id', target_model=AudienceModel, target_fields=(('name', 'Аудитория'),))
+        self.group = ForeignKeyField(title='ID группы', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Группа'),))
+        self.teacher = ForeignKeyField(title='ID учителя', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
+        self.type = ForeignKeyField(title='ID типа пары', col_name='type_id', target_model=LessonTypesModel, target_fields=(('name', 'Тип'),))
+        self.weekday = ForeignKeyField(title='ID дня недели', col_name='weekday_id', target_model=WeekdaysModel, target_fields=(('name', 'День недели'),))
 
 class LogStatusModel(BasicModel):
     title = 'Статус записи'
@@ -343,16 +343,16 @@ class LogModel(BasicModel):
 
 
 all_models = (
-        # AudienceModel,
-        # GroupsModel,
-        # LessonsModel,
-        # LessonTypesModel,
-        # SchedItemsModel,
+        AudienceModel,
+        GroupsModel,
+        LessonsModel,
+        LessonTypesModel,
+        SchedItemsModel,
         SubjectsModel,
-        # SubjectGroupModel,
+        SubjectGroupModel,
         SubjectTeacherModel,
         TeachersModel,
-        # WeekdaysModel,
+        WeekdaysModel,
         # LogStatusModel,
         # LogModel
 )

@@ -4,9 +4,6 @@ class BaseField:
         self.col_name = col_name
         self.table_name = table_name
 
-    def select_col(self, sql_builder):
-        sql_builder.add_field(self.col_name)
-
     def select_col_raw(self, sql_builder):
         sql_builder.add_field(self.col_name)
 
