@@ -4,6 +4,7 @@ from flask import render_template
 from flask import redirect
 from flask import url_for
 from flask import jsonify
+from flask import abort
 import models
 import misc
 import type_checkers
@@ -117,17 +118,28 @@ def edit(table=None, pk=None):
     fields = model.fields_own
     data['fields'] = fields
 
+    values = None
+    deleted = False
+
     if request.method == 'POST':
-        new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
-        data['values'] = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
-
         action = request.form.get('action', None)
-        if action == 'close':
+        if action == 'delete':
+            main_field = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])[0]
+            deleted = main_field
+            data['record_name'] = main_field
             data['close_window'] = True
-            return data
+        elif action == 'close' or action == 'edit':
+            new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
+            values = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
+            data['close_window'] = action == 'close'
     else:
-        data['values'] = model.fetch_own_by_pk(pk)
+        values = model.fetch_own_by_pk(pk)
 
+    if not values and not deleted:
+        abort(404)
+
+    data['deleted'] = deleted
+    data['values'] = values
     return data
 
 

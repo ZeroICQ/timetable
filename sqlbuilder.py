@@ -3,7 +3,7 @@ from fields import ForeignKeyField, BaseField
 from collections import OrderedDict
 
 class SQLBasicBuilder:
-    def __init__(self, operation, target_table, fields):
+    def __init__(self, operation, target_table, fields=None):
         self.operation = operation
         self.target_model = target_table
         self.fields = fields
@@ -106,7 +106,9 @@ class SQLBasicUpdate(SQLBasicBuilder):
         compiled_query += self.target_model.table_name + ' SET '
         compiled_query += self.updating_fields_query
         compiled_query += self.conditions_query
-        compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+
+        if self.return_fields:
+            compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
 
         return compiled_query
 
@@ -116,15 +118,18 @@ class SQLBasicUpdate(SQLBasicBuilder):
 
 
 class SQLBasicDelete(SQLBasicBuilder):
-
-    def __init__(self, target_table=None, operation=''):
+    def __init__(self, target_table=None, return_fields=None):
         super().__init__('DELETE', target_table)
+        self.return_fields=return_fields
 
     @property
     def query(self):
         compiled_query = super().query
         compiled_query += 'from ' + self.target_model.table_name + ' '
-        compiled_query = self.conditions_query(compiled_query)
+        compiled_query += self.conditions_query
+        if self.return_fields:
+            compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+
         return compiled_query
 
 

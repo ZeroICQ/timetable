@@ -182,14 +182,16 @@ class BasicModel(metaclass=BasicModelMetaclass):
         # self.log_action(cursor=cur, pk=pk, action='modify')
         cur.transaction.commit()
         return result_fields
-    #
-    # def delete_by_id(self, pk_val):
-    #     cur = get_cursor()
-    #     sql = SQLBasicDelete(self)
-    #     sql.add_where_equal_param(self.pk.col_name, pk_val)
-    #     sql.execute(cur)
-    #     self.log_action(cursor=cur, pk=pk_val, action='delete')
-    #     cur.transaction.commit()
+
+    def delete_by_pk(self, pk_val, return_fields=None):
+        cur = get_cursor()
+        sql = SQLBasicDelete(self, return_fields=return_fields)
+        sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
+        sql.execute(cur)
+        result_fields = cur.fetchone()
+        # self.log_action(cursor=cur, pk=pk_val, action='delete')
+        cur.transaction.commit()
+        return result_fields
     #
     # def insert(self, values):
     #     cur = get_cursor()

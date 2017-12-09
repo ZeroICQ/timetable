@@ -2,17 +2,24 @@
 
 {% block body %}
   {{ super() }}
-  <div class="col col-md-4">
-    <form method="post">
-      <div class="form-group">
-        {% if values is defined %}
-          {% for field in fields %}
-            {{ field.get_html(values[loop.index0]) }}
-          {% endfor %}
-        {% endif %}
-      </div>
-      <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Сохранить и продолжить</button>
-      <button type="submit" name="action" value="close" class="btn btn-sm btn-danger">Сохранить и закрыть</button>
-    </form>
-  </div>
+
+  {% if deleted is defined and deleted%}
+    {{record_name}} is successfully deleted
+  {% else %}
+    <div class="col col-md-4">
+      <form method="post">
+        <div class="form-group">
+          {% if values is defined %}
+            {% for field in fields %}
+              {{ field.get_html(values[loop.index0]) }}
+            {% endfor %}
+          {% endif %}
+        </div>
+        <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Сохранить и продолжить</button>
+        <button type="submit" name="action" value="close" class="btn btn-sm btn-danger">Сохранить и закрыть</button>
+        <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger">Удалить</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="window.close()">Закрыть</button>
+      </form>
+    </div>
+  {% endif %}
 {% endblock %}
