@@ -8,7 +8,7 @@
 
   <div class="col col-md-9">
     {% if selected_table is defined %}
-      <a class="record-action-link" href="{{ url_for('create', table=table)}}" target="_blank">
+      <a class="record-action-link btn btn-primary btn-sm" href="{{ url_for('create', table=selected_table)}}" target="_blank">
         Создать
       </a>
       <table class="table table-hover table-bordered table table-responsive-sm text-center">

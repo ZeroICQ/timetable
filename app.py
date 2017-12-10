@@ -108,7 +108,7 @@ def catalog(table=''):
 
 @app.route("/<table>/edit/<int:pk>", methods=['GET', 'POST'])
 @misc.templated('edit.html')
-def edit(table=None, pk=None):
+def edit(table, pk=None):
     data = {}
 
     if table not in tables:
@@ -124,8 +124,8 @@ def edit(table=None, pk=None):
     if request.method == 'POST':
         action = request.form.get('action', None)
         if action == 'delete':
-            main_field = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])[0]
-            deleted = main_field
+            main_field = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
+            deleted = len(main_field) > 0
             data['record_name'] = main_field
             data['close_window'] = True
         elif action == 'close' or action == 'edit':
@@ -145,24 +145,25 @@ def edit(table=None, pk=None):
 
 @app.route("/<table>/create", methods=['GET', 'POST'])
 @misc.templated('create.html')
-def create(table=None):
+def create(table):
     data = {}
-    tables = get_tables()
 
-    if not (0 <= table < len(tables)):
+    if table not in tables:
         return data
 
     model = tables[table]()
-    fields = model.mutable_fields
+
+    fields = model.fields_own
     data['fields'] = fields
 
     if request.method == 'POST':
-        values = [request.form.get(str(i), None) for i in range(len(fields))]
-        pk = model.insert(values)
+        new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
+        pk = model.insert(new_fields)
+
         action = request.form.get('action', None)
 
         if action == 'edit':
-            redirect(url_for('edit',table=table, pk=pk))
+            return redirect(url_for('edit', table=table, pk=pk))
         elif action == 'close':
             data['close_window'] = True
         # elif action == 'new' or action is None:

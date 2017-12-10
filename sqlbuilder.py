@@ -3,7 +3,7 @@ from fields import ForeignKeyField, BaseField
 from collections import OrderedDict
 
 class SQLBasicBuilder:
-    def __init__(self, operation, target_table, fields=None):
+    def __init__(self, operation, target_table, fields=None, return_fields=None):
         self.operation = operation
         self.target_model = target_table
         self.fields = fields
@@ -11,6 +11,7 @@ class SQLBasicBuilder:
         self.conditions = []
         self.params_after_where = []
         self.params_before_where = []
+        self.return_fields = return_fields
 
     @property
     def query(self):
@@ -45,37 +46,31 @@ class SQLBasicBuilder:
 
         return query
 
+    @property
+    def returning_fields_query(self):
+        if self.return_fields:
+            return 'RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+
 
 class SQLBasicInsert(SQLBasicBuilder):
-    def __init__(self, target_table=None, values=None, operation='INSERT'):
-        super().__init__(operation=operation, target_table=target_table)
-        #very important check
-        self.values = [value if value else None for value in values]
+    def __init__(self, target_table=None, fields=None, return_fields=None):
+        fields = OrderedDict(fields)
+        super().__init__('INSERT', target_table, fields, return_fields)
 
-    def execute(self, cur, params=None):
-        if params is None:
-            params = []
-        params += self.values
-        return super().execute(cur, params)
+        self.params_before_where += [value if value != 'None' else None for value in fields.values()]
 
-    def add_field(self, field):
-        self.fields.append(field)
-
-    def add_inserting_fields(self, query):
-        query += '('
-        query += ', '.join(self.fields)
-        query += ') VALUES ('
-        query += ', '.join('?' for field in self.fields)
-        query += ') '
-
-        return query
+    @property
+    def inserting_fields_query(self):
+        fields_str = ', '.join(self.fields)
+        values_str = ', '.join('?' for field in self.fields)
+        return '({}) VALUES ({})'.format(fields_str, values_str)
 
     @property
     def query(self):
         compiled_query = super().query
         compiled_query += 'INTO ' + self.target_model.table_name + ' '
-        compiled_query = self.add_inserting_fields(compiled_query)
-        compiled_query += ' RETURNING ' + self.target_model.pk.col_name
+        compiled_query += self.inserting_fields_query
+        compiled_query += self.returning_fields_query
         return compiled_query
 
 
@@ -94,11 +89,8 @@ class SQLLog(SQLBasicInsert):
 class SQLBasicUpdate(SQLBasicBuilder):
     def __init__(self, target_table, new_fields, return_fields=None):
         new_fields = OrderedDict(new_fields)
-        super().__init__(operation='UPDATE', target_table=target_table, fields=[field for field in new_fields])
-
+        super().__init__(operation='UPDATE', target_table=target_table, fields=[field for field in new_fields], return_fields=return_fields)
         self.new_fields = new_fields
-        self.return_fields=return_fields
-
         self.params_before_where += [value if value != 'None' else None for value in new_fields.values()]
 
     @property
@@ -107,9 +99,7 @@ class SQLBasicUpdate(SQLBasicBuilder):
         compiled_query += self.target_model.table_name + ' SET '
         compiled_query += self.updating_fields_query
         compiled_query += self.conditions_query
-
-        if self.return_fields:
-            compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+        compiled_query += self.returning_fields_query
 
         return compiled_query
 
@@ -120,7 +110,7 @@ class SQLBasicUpdate(SQLBasicBuilder):
 
 class SQLBasicDelete(SQLBasicBuilder):
     def __init__(self, target_table=None, return_fields=None):
-        super().__init__('DELETE', target_table)
+        super().__init__('DELETE', target_table, return_fields=return_fields)
         self.return_fields=return_fields
 
     @property
@@ -128,8 +118,8 @@ class SQLBasicDelete(SQLBasicBuilder):
         compiled_query = super().query
         compiled_query += 'from ' + self.target_model.table_name + ' '
         compiled_query += self.conditions_query
-        if self.return_fields:
-            compiled_query += ' RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+
+        compiled_query += self.returning_fields_query
 
         return compiled_query
 

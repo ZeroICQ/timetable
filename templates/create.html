@@ -8,7 +8,7 @@
     <form method="post">
       <div class="form-group">
         {% for field in fields %}
-          {{ form_field(field, name=loop.index0) }}
+          {{ field.get_html() }}
         {% endfor %}
       </div>
       <button type="submit" name="action" value="new" class="btn btn-sm btn-success">Создать и продолжить</button>

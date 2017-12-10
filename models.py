@@ -192,15 +192,14 @@ class BasicModel(metaclass=BasicModelMetaclass):
         # self.log_action(cursor=cur, pk=pk_val, action='delete')
         cur.transaction.commit()
         return result_fields
-    #
-    # def insert(self, values):
-    #     cur = get_cursor()
-    #     sql = SQLBasicInsert(self, values=values)
-    #     sql = self.select_all_fields_raw(sql)
-    #     sql.execute(cur)
-    #     pk = cur.fetchone()[0]
-    #     cur.transaction.commit()
-    #     return pk
+
+    def insert(self, new_fields):
+        cur = get_cursor()
+        sql = SQLBasicInsert(self, new_fields, [self.pk])
+        sql.execute(cur)
+        pk = cur.fetchone()[0]
+        cur.transaction.commit()
+        return pk
 
 
 class AudienceModel(BasicModel):
