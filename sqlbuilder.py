@@ -18,18 +18,28 @@ class SQLBasicBuilder:
     def query(self):
         return self.operation + ' '
 
-    def add_condition(self, field_name, value, compare_operator, logic_operator='AND'):
+    def _append_condition(self, condition):
         # Exclude fields with empty values
-        if not value:
+        if not condition.value:
             return
-        self.conditions.append(BasicCondition(field_name, value, logic_operator, compare_operator))
+        self.conditions.append(condition)
+
+    def add_conditions(self, conditions):
+        if conditions is None:
+            return
+
+        try:
+            for condition in conditions:
+                self._append_condition(condition)
+        except TypeError:
+            self._append_condition(conditions)
 
     def add_equal_condition(self, field_name, value, logic_operator=None):
-        self.add_condition(field_name, value, '=', logic_operator)
+        self.add_conditions(BasicCondition(field_name, value, '=', logic_operator))
 
     def execute(self, cur):
         params = self.params_before_where
-        params += [cond.val for cond in self.conditions]
+        params += [cond.value for cond in self.conditions]
         params += self.params_after_where
         print(self.query)
         return cur.execute(self.query, params)
@@ -108,7 +118,6 @@ class SQLBasicDelete(SQLBasicBuilder):
         compiled_query = super().query
         compiled_query += 'from ' + self.target_model.table_name + ' '
         compiled_query += self.conditions_query
-
         compiled_query += self.returning_fields_query
 
         return compiled_query
@@ -126,7 +135,6 @@ class SQLBasicSelect(SQLBasicBuilder):
 
     @property
     def selected_fields_query(self):
-        # return ', '.join(map(lambda f: f.qualified_col_name, self.fields)) + ' '
         return ', '.join(field.qualified_col_name for field in self.fields) + ' '
 
     @property

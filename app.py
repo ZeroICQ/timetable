@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import request
-from flask import render_template
 from flask import redirect
 from flask import url_for
 from flask import jsonify
@@ -9,8 +8,8 @@ import models
 import misc
 import type_checkers
 import jinja_helpers
-from conditions import BasicCondition
-from datetime import  datetime
+from conditions import BasicCondition, create_conditions
+from datetime import datetime
 from collections import OrderedDict
 
 app = Flask(__name__)
@@ -23,7 +22,7 @@ jinja_helpers.register_helpers(app)
 
 
 tables = OrderedDict({model.title.lower(): model for model in models.all_models})
-pagination_choices = (10, 20, 50)
+pagination_choices = (5, 10, 20, 50)
 
 '''------------'''
 '''MISC HELPERS'''
@@ -94,13 +93,15 @@ def catalog(table=''):
     if search_fields and search_vals:
         query_params['search_field'] = search_fields
         query_params['search_val'] = search_vals
-        data['entries'] = selected_model.fetch_all_by_criteria(search_fields, search_vals, logic_operators,
-                                                               compare_operators, sort_field, sort_order, pagination)
-        data['pages'] = selected_model.get_pages(search_fields, search_vals, logic_operators, compare_operators)
+
+        conditions = create_conditions(search_fields, search_vals, compare_operators, logic_operators)
+
+        data['entries'] = selected_model.fetch_all(selected_model.fields_no_fk, conditions, sort_field, sort_order, pagination)
+        data['pages'] = selected_model.get_pages(search_fields, conditions, pagination)
         query_params['logic_operator'] = logic_operators
         query_params['compare_operator'] = compare_operators
     else:
-        data['entries'] = selected_model.fetch_all(sort_field, sort_order, pagination=pagination)
+        data['entries'] = selected_model.fetch_all(sort_field=sort_field, sort_order=sort_order, pagination=pagination)
         data['pages'] = selected_model.get_pages(pagination=pagination)
 
     return data
@@ -151,7 +152,6 @@ def create(table):
 
     if table not in tables:
         return data
-
 
     model = tables[table]()
 

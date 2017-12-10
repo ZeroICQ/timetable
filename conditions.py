@@ -2,11 +2,11 @@ class BasicCondition:
     compare_operators = ('=', '!=', '>', '>=', '<', '<=', 'LIKE')
     logic_operators = ['AND', 'OR']
 
-    def __init__(self, field_name, value, logic_operator, compare_operator):
+    def __init__(self, field_name, value, compare_operator, logic_operator):
         super().__init__()
 
         self.field_name = field_name
-        self.val = value
+        self.value = value
         self.logic_operator = logic_operator
         self.compare_operator = compare_operator
 
@@ -15,6 +15,9 @@ class BasicCondition:
         query += '{field_name} {cmp_op} ? '.format(field_name=self.field_name, cmp_op=self.compare_operator)
         return query
 
+
+def create_conditions(field_names, values, compare_operators, logic_operators):
+    return [condition for condition in map(BasicCondition, field_names, values, compare_operators, logic_operators)]
 
 # TODO: delete
 # class CustomCondition:

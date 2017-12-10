@@ -1,4 +1,4 @@
-{% if selected_table is defined %}
+{#{% if selected_table is defined %}
 <script>
     var updateLocal = function(pk) {
         $.ajax({
@@ -54,3 +54,4 @@
 
 </script>
 {% endif %}
+#}

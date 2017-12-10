@@ -41,7 +41,7 @@ class ForeignKeyField(BaseField):
 
     def get_html(self, value=None):
         model = self.target_model()
-        choices = model.fetch_all_main()
+        choices = model.fetch_all()
         return fields_html.fk_field(self, value, choices=choices)
 
 

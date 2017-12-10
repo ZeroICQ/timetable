@@ -111,10 +111,10 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
         return self._fields_main
 
-    def get_pages(self, fields=None, values=None, logic_operators=None, compare_operators=None, pagination=None):
+    def get_pages(self, fields=None, conditions=None, pagination=None):
         cur = get_cursor()
         sql = SQLCountAll(self)
-        # self.add_criteria(fields, values, logic_operators, compare_operators, sql)
+        sql.add_conditions(conditions)
         sql.execute(cur)
 
         rows = cur.fetchone()[0]
@@ -125,23 +125,13 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
         return ceil(rows/on_page)
 
-    def fetch_all(self, sort_field=None, sort_order=None, pagination=None):
+    def fetch_all(self, return_fields=None, conditions=None, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
-        sql = SQLSelect(self, self.fields_no_fk, pagination)
-        sql.sort_field = sort_field
-        sql.sort_order = sort_order
-        sql.execute(cur)
-        return cur.fetchall()
+        if return_fields is None:
+            return_fields = self.fields_no_fk
 
-    def add_criteria(self, fields_names, values, logic_operators, compare_operators, sql):
-        # TODO: Discover whether there is a better way to iterate over map
-        for r in map(sql.add_condition, fields_names, values, compare_operators, logic_operators):
-            pass
-
-    def fetch_all_by_criteria(self, fields, values, logic_operators, compare_operators, sort_field=None, sort_order=None, pagination=None):
-        cur = get_cursor()
-        sql = SQLSelect(self, self.fields_no_fk, pagination=pagination)
-        self.add_criteria(fields, values, logic_operators, compare_operators, sql)
+        sql = SQLSelect(self, return_fields, pagination)
+        sql.add_conditions(conditions)
         sql.sort_order = sort_order
         sql.sort_field = sort_field
         sql.execute(cur)
@@ -149,7 +139,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     def fetch_by_pk(self, pk_val, fields=None):
         cur = get_cursor()
-
         if fields is None:
             fields = self.fields_own
 
@@ -157,30 +146,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         return cur.fetchone()
-
-    def fetch_all_main(self):
-        cur = get_cursor()
-        sql = SQLSelect(self, self.fields_main)
-        sql.execute(cur)
-        return cur.fetchall()
-
-    # def fetch_by_pk(self, pk_val):
-    #     cur = get_cursor()
-    #     sql = self.select_all_fields()
-    #     sql.add_where_equal_param(self.pk.col_name, pk_val)
-    #     sql.execute(cur)
-    #     return cur.fetchone()
-    #
-    def log_action(self, cursor, action, pk):
-        action = self.actions[action]
-        log_table = LogModel()
-        fields = {
-            log_table.logged_table_name.qualified_col_name: self.table_name,
-            log_table.status.qualified_col_name: action,
-            log_table.logged_table_pk.qualified_col_name: pk
-        }
-        sql = SQLBasicInsert(log_table, fields)
-        sql.execute(cursor)
 
     def update(self, return_fields, new_fields, pk_val):
         cur = get_cursor()
@@ -211,6 +176,17 @@ class BasicModel(metaclass=BasicModelMetaclass):
         pk = cur.fetchone()[0]
         cur.transaction.commit()
         return pk
+
+    def log_action(self, cursor, action, pk):
+        action = self.actions[action]
+        log_table = LogModel()
+        fields = {
+            log_table.logged_table_name.qualified_col_name: self.table_name,
+            log_table.status.qualified_col_name: action,
+            log_table.logged_table_pk.qualified_col_name: pk
+        }
+        sql = SQLBasicInsert(log_table, fields)
+        sql.execute(cursor)
 
 
 class AudienceModel(BasicModel):
