@@ -3,8 +3,10 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
-from conditions import BasicCondition
+from conditions import BetweenCondition
 from datetime import datetime
+import fields_wrappers
+
 
 def get_db():
     """Opens a new database connection if there is none yet for the
@@ -46,7 +48,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
     table_name = None
 
     actions = {'delete': 1,
-                   'modify': 2}
+               'modify': 2}
 
     def __init__(self):
         super().__init__()
@@ -133,7 +135,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql = SQLSelect(self, return_fields, pagination)
         sql.add_conditions(conditions)
         sql.sort_order = sort_order
-        sql.sort_field = sort_field
+        sql.sort_field_name = sort_field
         sql.execute(cur)
         return cur.fetchall()
 
@@ -342,24 +344,39 @@ class LogModel(BasicModel):
         # TODO: fix creation
         self.datetime = TimestampField(col_name='change_time', title='Время')
 
-    def get_changes(self, date_start, pks, table_name):
+    def get_status(self, pk, past_updated, now_updated):
         cur = get_cursor()
-        sql = SQLLogSelect(target_table=self)
-        sql = self.select_all_fields(sql)#there is no pk!! fix in future
-        sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
-        sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
-        sql.add_custom_condition(CustomCondition(field_name=self.logged_table_name.col_name,
-                                                 compare_operator='=', val=table_name))
-        group_pk = GroupCondition('AND')
-        for pk in pks:
-            group_pk.add_condition(CustomCondition(field_name=self.logged_table_pk.col_name,
-                                                     val=pk,
-                                                     compare_operator='=',
-                                                     logic_operator='OR'))
-
-        sql.add_group_condition(group_pk)
+        log_status = self.status.target_model()
+        # Wanna see some magic? TODO: refactor
+        sql = SQLSelect(self, [getattr(self, log_status.table_name + '__' + log_status.main_field.col_name)], rows=1)
+        sql.add_conditions(BetweenCondition(self.datetime.qualified_col_name, past_updated, now_updated))
+        sql.sort_field_name = self.datetime.qualified_col_name
+        sql.sort_order = 'DESC'
         sql.execute(cur)
-        return cur.fetchallmap()
+
+        result = cur.fetchone()
+        status = result[0] if result else None
+        return status
+
+    # TODO: delete
+    # def get_changes(self, date_start, pks, table_name):
+    #     cur = get_cursor()
+    #     sql = SQLLogSelect(target_table=self)
+    #     sql = self.select_all_fields(sql)#there is no pk!! fix in future
+    #     sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
+    #     sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
+    #     sql.add_custom_condition(CustomCondition(field_name=self.logged_table_name.col_name,
+    #                                              compare_operator='=', val=table_name))
+    #     group_pk = GroupCondition('AND')
+    #     for pk in pks:
+    #         group_pk.add_condition(CustomCondition(field_name=self.logged_table_pk.col_name,
+    #                                                  val=pk,
+    #                                                  compare_operator='=',
+    #                                                  logic_operator='OR'))
+    #
+    #     sql.add_group_condition(group_pk)
+    #     sql.execute(cur)
+    #     return cur.fetchallmap()
 
 
 all_models = (

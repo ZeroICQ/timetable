@@ -1,6 +1,12 @@
 {% extends "record_action.html" %}
 
 {% block body %}
+  <div id='delete-alert' class="alert alert-danger" role="alert" style="display: none">
+    Элемент был удален
+  </div>
+  <div id='modify-alert' class="alert alert-warning" role="alert" style="display: none">
+    Элемент был изменён
+  </div>
   {{ super() }}
 
   {% if deleted is defined and deleted%}

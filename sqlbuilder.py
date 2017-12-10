@@ -39,9 +39,13 @@ class SQLBasicBuilder:
 
     def execute(self, cur):
         params = self.params_before_where
-        params += [cond.value for cond in self.conditions]
+
+        for cond in self.conditions:
+            cond.add_values(params)
+
         params += self.params_after_where
         print(self.query)
+        print(params)
         return cur.execute(self.query, params)
 
     @property
@@ -124,10 +128,11 @@ class SQLBasicDelete(SQLBasicBuilder):
 
 
 class SQLBasicSelect(SQLBasicBuilder):
-    def __init__(self, target_table, fields, sort_field=None, sort_order=None):
+    def __init__(self, target_table, fields, sort_field=None, sort_order=None, rows=None):
         super().__init__('SELECT', target_table, fields)
-        self.sort_field = sort_field
+        self.sort_field_name = sort_field
         self.sort_order = sort_order
+        self.rows = rows
 
     @property
     def left_joins(self):
@@ -136,6 +141,13 @@ class SQLBasicSelect(SQLBasicBuilder):
     @property
     def selected_fields_query(self):
         return ', '.join(field.qualified_col_name for field in self.fields) + ' '
+
+    @property
+    def rows_query(self):
+        query = ''
+        if self.rows is not None:
+            query = 'ROWS ? '
+        return query
 
     @property
     def query(self):
@@ -179,8 +191,8 @@ class SQLCountAll(SQLBasicSelect):
 
 
 class SQLSelect(SQLBasicSelect):
-    def __init__(self, target_table, fields, pagination=None):
-        super().__init__(target_table, fields)
+    def __init__(self, target_table, fields, pagination=None, rows=None):
+        super().__init__(target_table, fields, rows=rows)
         self.pagination = pagination
 
         if self.pagination:
@@ -188,6 +200,9 @@ class SQLSelect(SQLBasicSelect):
             page_size = self.pagination[1]
             self.params_after_where.append(page_size * (page - 1))
             self.params_after_where.append(page_size)
+
+        if self.rows:
+            self.params_after_where.append(rows)
 
     @property
     def offset_query(self):
@@ -197,15 +212,13 @@ class SQLSelect(SQLBasicSelect):
             page = self.pagination[0]
             page_size = self.pagination[1]
 
-            self.params_after_where.append(page_size * (page - 1))
-            self.params_after_where.append(page_size)
         return query
 
     @property
     def sort_query(self):
         query = ''
-        if self.sort_field is not None:
-            query += 'ORDER BY ' + self.sort_field + ' '
+        if self.sort_field_name is not None:
+            query += 'ORDER BY ' + self.sort_field_name + ' '
 
             if self.sort_order:
                 query += self.sort_order + ' '
@@ -216,4 +229,5 @@ class SQLSelect(SQLBasicSelect):
         compiled_query = super().query
         compiled_query += self.sort_query
         compiled_query += self.offset_query
+        compiled_query += self.rows_query
         return compiled_query

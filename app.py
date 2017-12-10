@@ -22,7 +22,7 @@ jinja_helpers.register_helpers(app)
 
 
 tables = OrderedDict({model.title.lower(): model for model in models.all_models})
-pagination_choices = (5, 10, 20, 50)
+pagination_choices = (10, 20, 50)
 
 '''------------'''
 '''MISC HELPERS'''
@@ -117,8 +117,10 @@ def edit(table, pk=None):
 
     model = tables[table]()
     data['table'] = table
+    data['pk'] = pk
     fields = model.fields_own
     data['fields'] = fields
+    data['last_update'] = datetime.now().timestamp()
 
     values = None
     deleted = False
@@ -173,45 +175,55 @@ def create(table):
 
     return data
 
-
-@app.route("/<table>/log/", methods=['GET'])
-def get_log(table):
-    data = {}
-    tables = get_tables()
-
-    last_update = request.args.get('last_update', None, type=float)
-
-    if not (0 <= table < len(tables)) or last_update is None:
-        return jsonify(data)
-
-    last_update = datetime.fromtimestamp(last_update)
-
-    pks = request.args.getlist('pk', type=int)
-    logs = models.LogModel()
-    changes = logs.get_changes(last_update, pks, tables[table]().table_name)
-
-    ch_dict = {}
-    for change in changes:
-        ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
-
-    data['changes'] = ch_dict
-    data['last_update'] = datetime.now().timestamp()
-
-    return jsonify(data)
+# TODO: delete
+# @app.route("/<table>/log/", methods=['GET'])
+# def get_log(table):
+#     data = {}
+#     tables = get_tables()
+#
+#     last_update = request.args.get('last_update', None, type=float)
+#
+#     if not (0 <= table < len(tables)) or last_update is None:
+#         return jsonify(data)
+#
+#     last_update = datetime.fromtimestamp(last_update)
+#
+#     pks = request.args.getlist('pk', type=int)
+#     logs = models.LogModel()
+#     changes = logs.get_changes(last_update, pks, tables[table]().table_name)
+#
+#     ch_dict = {}
+#     for change in changes:
+#         ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
+#
+#     data['changes'] = ch_dict
+#     data['last_update'] = datetime.now().timestamp()
+#
+#     return jsonify(data)
 
 
 @app.route('/<table>/<int:pk>.json', methods=['GET'])
 def record_get(table, pk):
     data = {}
 
-    if table not in tables:
+    last_updated = request.args.get('last_update', None, type=float)
+
+    if table not in tables or last_updated is None:
         abort(404)
 
     model = tables[table]()
-    fields = model.fields_main
+    fields = model.fields
 
-    values = model.fetch_by_pk(pk, fields)
-    data['values'] = {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
+    now_update = datetime.now()
+    data['last_update'] = now_update.timestamp()
+
+    last_updated = datetime.fromtimestamp(last_updated)
+
+    log = models.LogModel()
+    data['status'] = log.get_status(pk, last_updated, now_update)
+
+    # values = model.fetch_by_pk(pk, fields)
+    # data['values'] = {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
 
     return jsonify(data)
 
