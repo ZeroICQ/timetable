@@ -7,7 +7,7 @@
     {{record_name}} is successfully deleted
   {% else %}
     <div class="col col-md-4">
-      <form method="post">
+      <form method="post" class="edit_form">
         <div class="form-group">
           {% if values is defined %}
             {% for field in fields %}
@@ -26,4 +26,9 @@
       </form>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% include "js/edit.js" %}
 {% endblock %}

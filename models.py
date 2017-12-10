@@ -1,7 +1,7 @@
 import flask
 import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
-from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLog, SQLLogSelect
+from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
 from conditions import BasicCondition
 from datetime import datetime
@@ -147,9 +147,13 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         return cur.fetchall()
 
-    def fetch_own_by_pk(self, pk_val):
+    def fetch_by_pk(self, pk_val, fields=None):
         cur = get_cursor()
-        sql = SQLSelect(self, self.fields_own)
+
+        if fields is None:
+            fields = self.fields_own
+
+        sql = SQLSelect(self, fields)
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         return cur.fetchone()

@@ -115,6 +115,7 @@ def edit(table, pk=None):
         return data
 
     model = tables[table]()
+    data['table'] = table
     fields = model.fields_own
     data['fields'] = fields
 
@@ -133,7 +134,7 @@ def edit(table, pk=None):
             values = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
             data['close_window'] = action == 'close'
     else:
-        values = model.fetch_own_by_pk(pk)
+        values = model.fetch_by_pk(pk)
 
     if not values and not deleted:
         abort(404)
@@ -150,6 +151,7 @@ def create(table):
 
     if table not in tables:
         return data
+
 
     model = tables[table]()
 
@@ -198,19 +200,19 @@ def get_log(table):
     return jsonify(data)
 
 
-@app.route('/<table>/get', methods=['GET'])
-def record_get(table, pk=None):
+@app.route('/<table>/<int:pk>.json', methods=['GET'])
+def record_get(table, pk):
     data = {}
-    tables = get_tables()
 
-    pk = request.args.get('pk', None, type=int);
-
-    if not (0 <= table < len(tables)):
-        return jsonify(data)
+    if table not in tables:
+        abort(404)
 
     model = tables[table]()
+    fields = model.fields_main
 
-    data = model.fetch_by_pk(pk_val=pk)
+    values = model.fetch_by_pk(pk, fields)
+    data['values'] = {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
+
     return jsonify(data)
 
 
