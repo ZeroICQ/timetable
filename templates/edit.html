@@ -15,10 +15,14 @@
             {% endfor %}
           {% endif %}
         </div>
-        <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Сохранить и продолжить</button>
-        <button type="submit" name="action" value="close" class="btn btn-sm btn-danger">Сохранить и закрыть</button>
-        <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger">Удалить</button>
-        <button type="button" class="btn btn-sm btn-danger" onclick="window.close()">Закрыть</button>
+        <div class="btn-group">
+          <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Сохранить и продолжить редактирование</button>
+          <button type="submit" name="action" value="close" class="btn btn-sm btn-primary">Сохранить и закрыть</button>
+        </div>
+        <div class="btn-group">
+          <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger">Удалить</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="window.close()">Закрыть</button>
+        </div>
       </form>
     </div>
   {% endif %}

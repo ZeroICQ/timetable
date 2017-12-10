@@ -98,7 +98,8 @@ class SQLBasicUpdate(SQLBasicBuilder):
 
         self.new_fields = new_fields
         self.return_fields=return_fields
-        self.params_before_where += [value for value in new_fields.values()]
+
+        self.params_before_where += [value if value != 'None' else None for value in new_fields.values()]
 
     @property
     def query(self):

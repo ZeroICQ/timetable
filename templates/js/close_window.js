@@ -1,6 +1,6 @@
 <script>
 (function() {
-    {% if close_window is defined %}
+    {% if close_window is defined and close_window %}
         window.close();
     {% endif %}
 })();

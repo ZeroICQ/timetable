@@ -29,9 +29,10 @@ def fk_field(field, val, params=None, **kwargs):
     params['label'] = field.title
     choices = kwargs['choices']
 
-    options = ''
+    options = '<option {} value=\'None\'>None</option>'.format('selected' if val is None else '')
     for choice in choices:
         selected = 'selected' if val == choice[0] else ''
+
         options += ('<option {} value=\'{}\'>{}</option>'.format(selected, Markup.escape(choice[0]), Markup.escape(choice[1])))
     html = '<select name="%(name)s" class="form-control form-control-sm" type="number" value="%(val)s">{}</select>'.format(options)
     return html
