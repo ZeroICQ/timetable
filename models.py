@@ -45,6 +45,9 @@ class BasicModel(metaclass=BasicModelMetaclass):
     title = None
     table_name = None
 
+    actions = {'delete': 1,
+                   'modify': 2}
+
     def __init__(self):
         super().__init__()
         self.pagination = None
@@ -164,14 +167,17 @@ class BasicModel(metaclass=BasicModelMetaclass):
     #     sql.execute(cur)
     #     return cur.fetchone()
     #
-    # def log_action(self, cursor, action, pk):
-    #     actions = {'delete': 1,
-    #                'modify': 2}
-    #
-    #     log_table = LogModel()
-    #     log_sql = SQLLog(target_table=log_table, values=[actions[action], self.table_name, pk])
-    #     log_sql.execute(cursor)
-    #
+    def log_action(self, cursor, action, pk):
+        action = self.actions[action]
+        log_table = LogModel()
+        fields = {
+            log_table.logged_table_name.qualified_col_name: self.table_name,
+            log_table.status.qualified_col_name: action,
+            log_table.logged_table_pk.qualified_col_name: pk
+        }
+        sql = SQLBasicInsert(log_table, fields)
+        sql.execute(cursor)
+
     def update(self, return_fields, new_fields, pk_val):
         cur = get_cursor()
         sql = SQLBasicUpdate(self, new_fields, return_fields=return_fields)
@@ -179,7 +185,8 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         result_fields = cur.fetchone()
 
-        # self.log_action(cursor=cur, pk=pk, action='modify')
+        self.log_action(cur, 'modify', pk_val)
+
         cur.transaction.commit()
         return result_fields
 
@@ -189,7 +196,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         result_fields = cur.fetchone()
-        # self.log_action(cursor=cur, pk=pk_val, action='delete')
+        self.log_action(cur, 'delete', pk_val)
         cur.transaction.commit()
         return result_fields
 
@@ -338,6 +345,10 @@ class LogStatusModel(BasicModel):
         super().__init__()
         self.name = StringField('Статус', col_name='name')
 
+    @property
+    def main_field(self):
+        return self.name
+
 
 class LogModel(BasicModel):
     title = 'Логи'
@@ -345,7 +356,7 @@ class LogModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.status = ForeignKeyField(col_name='status', target_table='log_status', target_fields=(('name', 'Статус'),))
+        self.status = ForeignKeyField(title='Статус', col_name='status', target_model=LogStatusModel, target_fields=(('name', 'Статус'),))
         self.logged_table_name = StringField(col_name='table_name', title='Таблица')
         self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
         # TODO: fix creation
@@ -382,6 +393,6 @@ all_models = (
         SubjectTeacherModel,
         TeachersModel,
         WeekdaysModel,
-        # LogStatusModel,
-        # LogModel
+        LogStatusModel,
+        LogModel
 )

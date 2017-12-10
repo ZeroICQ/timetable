@@ -2,6 +2,7 @@ from conditions import BasicCondition
 from fields import ForeignKeyField, BaseField
 from collections import OrderedDict
 
+
 class SQLBasicBuilder:
     def __init__(self, operation, target_table, fields=None, return_fields=None):
         self.operation = operation
@@ -50,6 +51,7 @@ class SQLBasicBuilder:
     def returning_fields_query(self):
         if self.return_fields:
             return 'RETURNING ' + ', '.join(field.qualified_col_name for field in self.return_fields)
+        return ''
 
 
 class SQLBasicInsert(SQLBasicBuilder):
@@ -72,18 +74,6 @@ class SQLBasicInsert(SQLBasicBuilder):
         compiled_query += self.inserting_fields_query
         compiled_query += self.returning_fields_query
         return compiled_query
-
-
-class SQLLog(SQLBasicInsert):
-    log_fields = ['status',
-                  'table_name',
-                  'table_pk']
-
-    def __init__(self, target_table=None, values=None):
-        super().__init__(target_table=target_table, values=values)
-
-        for field in self.log_fields:
-            self.add_field(field)
 
 
 class SQLBasicUpdate(SQLBasicBuilder):
