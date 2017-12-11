@@ -1,3 +1,4 @@
+{% if not deleted %}
 <script>
 $(document).ready(function () {
     var table = '{{ table }}';
@@ -43,3 +44,4 @@ $(document).ready(function () {
     checkForUpdate();
 });
 </script
+{% endif %}

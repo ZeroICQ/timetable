@@ -127,9 +127,9 @@ def edit(table, pk=None):
     if request.method == 'POST':
         action = request.form.get('action', None)
         if action == 'delete':
-            main_fields = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
-            deleted = len(main_fields) > 0
-            data['record_name'] = main_fields[0]
+            values = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
+            deleted = len(values) > 0 and not values.count(None) == len(values)
+            data['record_name'] = values[0]
         elif action == 'close' or action == 'edit':
             new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
             values = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
@@ -137,7 +137,7 @@ def edit(table, pk=None):
     else:
         values = model.fetch_by_pk(pk)
 
-    if not values and not deleted:
+    if values.count(None) == len(values):
         abort(404)
 
     data['last_update'] = datetime.now().timestamp()
