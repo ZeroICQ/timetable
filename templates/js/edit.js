@@ -27,11 +27,8 @@ $(document).ready(function () {
                 'last_update': lastUpdated,
             },
             success: function(data) {
-                console.log(lastUpdated)
                 lastUpdated = data['last_update'];
-                console.log('done');
                 console.log(data);
-                console.log('kek ' + lastUpdated)
                 changeStatus(data.status);
             },
         });

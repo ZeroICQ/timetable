@@ -32,15 +32,17 @@ class PKField(IntegerField):
 
 
 class ForeignKeyField(BaseField):
-    def __init__(self, title, col_name, target_model, target_fields=(), target_pk='id'):
+    def __init__(self, title, col_name, target_model_class, target_fields=(), target_pk='id'):
         super().__init__(title, col_name)
-
         self.target_pk = target_pk
         self.target_fields = target_fields
-        self.target_model = target_model
+        self.target_model = target_model_class()
+
+    def __getattr__(self, item):
+        return getattr(self.target_model, item)
 
     def get_html(self, value=None):
-        model = self.target_model()
+        model = self.target_model
         choices = model.fetch_all()
         return fields_html.fk_field(self, value, choices=choices)
 

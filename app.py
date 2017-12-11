@@ -70,7 +70,7 @@ def catalog(table=''):
 
     data['selected_table'] = table
 
-    data['fields'] = selected_model.fields_no_fk
+    data['fields'] = selected_model.fields_short_resolved
     # data['last_update'] = datetime.now().timestamp()
 
     # SEARCH
@@ -96,7 +96,7 @@ def catalog(table=''):
 
         conditions = create_conditions(search_fields, search_vals, compare_operators, logic_operators)
 
-        data['entries'] = selected_model.fetch_all(selected_model.fields_no_fk, conditions, sort_field, sort_order, pagination)
+        data['entries'] = selected_model.fetch_all(selected_model.fields_short_resolved, conditions, sort_field, sort_order, pagination)
         data['pages'] = selected_model.get_pages(search_fields, conditions, pagination)
         query_params['logic_operator'] = logic_operators
         query_params['compare_operator'] = compare_operators
@@ -118,7 +118,7 @@ def edit(table, pk=None):
     model = tables[table]()
     data['table'] = table
     data['pk'] = pk
-    fields = model.fields_own
+    fields = model.fields_no_pk
     data['fields'] = fields
 
     values = None
@@ -157,7 +157,7 @@ def create(table):
 
     model = tables[table]()
 
-    fields = model.fields_own
+    fields = model.fields_no_pk
     data['fields'] = fields
 
     if request.method == 'POST':
@@ -212,7 +212,7 @@ def record_get(table, pk):
         abort(404)
 
     model = tables[table]()
-    fields = model.fields
+    fields = model.fields_no_pk
 
     now_update = datetime.now()
     data['last_update'] = now_update.timestamp()

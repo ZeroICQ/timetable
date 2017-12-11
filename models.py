@@ -53,35 +53,18 @@ class BasicModel(metaclass=BasicModelMetaclass):
         self.pagination = None
         self.pk = PKField()
         self._fields = None
-        self._fields_no_fk = None
+        self._fields_short_resolved = None
         self._fields_own = None
         self._fields_main = None
-        self._fields_resolved_fks = None
+        self._fields_no_pk = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
 
     def resolve_foreign_keys(self):
-        resolved_fields = []
-
         for field in self.__dict__.values():
-            if isinstance(field, ForeignKeyField):
-                model = field.target_model()
-                for col_name, colt_title in field.target_fields:
-                    foreign_field = model.get_field_by_col_name(col_name)
-                    foreign_field.title = colt_title
-                    resolved_fields.append(foreign_field)
-
             if isinstance(field, BaseField):
                 field.table_name = self.table_name
-
-        for field in resolved_fields:
-            setattr(self, field.table_name + '__' + field.col_name, field)
-
-    def get_field_by_col_name(self, col_name):
-        for field in self.__dict__.values():
-            if isinstance(field, BaseField) and field.col_name == col_name:
-                return field
 
     @property
     def main_field(self):
@@ -94,29 +77,40 @@ class BasicModel(metaclass=BasicModelMetaclass):
         return self._fields
 
     @property
-    def fields_no_fk(self):
-        if self._fields_no_fk is None:
-            self._fields_no_fk = [field for field in self.fields if not isinstance(field, ForeignKeyField)]
-        return self._fields_no_fk
+    def fields_no_pk(self):
+        if self._fields_no_pk is None:
+            self._fields_no_pk = [field for field in self.fields if not isinstance(field, PKField)]
+        return self._fields_no_pk
+
+    @property
+    def fields_short_resolved(self):
+        if self._fields_short_resolved is None:
+            self._fields_short_resolved = [self.pk] + self.fields_own + self.fields_main
+        return self._fields_short_resolved
 
     @property
     def fields_own(self):
         if self._fields_own is None:
-            self._fields_own = [field for field in self.fields if field.table_name == self.table_name and not isinstance(field, PKField)]
+            self._fields_own = [field for field in self.fields if not (isinstance(field, PKField) or isinstance(field, ForeignKeyField))]
         return self._fields_own
 
     @property
     def fields_main(self):
         if self._fields_main is None:
-            self._fields_main = [self.pk, self.main_field]
-
+            self._fields_main = [field.target_model.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
         return self._fields_main
 
-    @property
-    def fields_resolved_fks(self):
-        if self._fields_resolved_fks is None:
-            self._fields_resolved_fks = self.fields_own + [field.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
-        return self._fields_resolved_fks
+    # @property
+    # def fields_unresolved(self):
+    #     if self._fields_unresolved is None:
+    #         self._fields_unresolved = [field for field in self.fields if not (isinstance(field, PKField) or isinstance(field, ForeignKeyField))]
+    #     return self._fields_unresolved
+
+    # @property
+    # def fields_resolved_fks(self):
+    #     if self._fields_short_resolved is None:
+    #         self._fields_short_resolved = self.fields_own + [field.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
+    #     return self._fields_short_resolved
 
     def get_pages(self, fields=None, conditions=None, pagination=None):
         cur = get_cursor()
@@ -135,7 +129,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
     def fetch_all(self, return_fields=None, conditions=None, sort_field=None, sort_order=None, pagination=None):
         cur = get_cursor()
         if return_fields is None:
-            return_fields = self.fields_no_fk
+            return_fields = self.fields_short_resolved
 
         sql = SQLSelect(self, return_fields, pagination)
         sql.add_conditions(conditions)
@@ -147,7 +141,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
     def fetch_by_pk(self, pk_val, fields=None):
         cur = get_cursor()
         if fields is None:
-            fields = self.fields_own
+            fields = self.fields_no_pk
 
         sql = SQLSelect(self, fields)
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
@@ -268,8 +262,8 @@ class SubjectGroupModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.subject = ForeignKeyField(title='Предмета', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
-        self.groups = ForeignKeyField(title='Группа', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Название группы'),))
+        self.subject = ForeignKeyField(title='Предмета', col_name='subject_id', target_model_class=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.groups = ForeignKeyField(title='Группа', col_name='group_id', target_model_class=GroupsModel, target_fields=(('name', 'Название группы'),))
 
 
 class SubjectTeacherModel(BasicModel):
@@ -278,8 +272,8 @@ class SubjectTeacherModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Название предмета'),))
-        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
+        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model_class=SubjectsModel, target_fields=(('name', 'Название предмета'),))
+        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model_class=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
 
 
 class TeachersModel(BasicModel):
@@ -315,13 +309,13 @@ class SchedItemsModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.lesson = ForeignKeyField(title='Пара', col_name='lesson_id', target_model=LessonsModel, target_fields=(('name', 'Пара'),))
-        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model=SubjectsModel, target_fields=(('name', 'Предмет'),))
-        self.audience = ForeignKeyField(title='Аудитория', col_name='audience_id', target_model=AudienceModel, target_fields=(('name', 'Аудитория'),))
-        self.group = ForeignKeyField(title='Группа', col_name='group_id', target_model=GroupsModel, target_fields=(('name', 'Группа'),))
-        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
-        self.type = ForeignKeyField(title='Типы пары', col_name='type_id', target_model=LessonTypesModel, target_fields=(('name', 'Тип'),))
-        self.weekday = ForeignKeyField(title='День недели', col_name='weekday_id', target_model=WeekdaysModel, target_fields=(('name', 'День недели'),))
+        self.lesson = ForeignKeyField(title='Пара', col_name='lesson_id', target_model_class=LessonsModel, target_fields=(('name', 'Пара'),))
+        self.subject = ForeignKeyField(title='Предмет', col_name='subject_id', target_model_class=SubjectsModel, target_fields=(('name', 'Предмет'),))
+        self.audience = ForeignKeyField(title='Аудитория', col_name='audience_id', target_model_class=AudienceModel, target_fields=(('name', 'Аудитория'),))
+        self.group = ForeignKeyField(title='Группа', col_name='group_id', target_model_class=GroupsModel, target_fields=(('name', 'Группа'),))
+        self.teacher = ForeignKeyField(title='Учитель', col_name='teacher_id', target_model_class=TeachersModel, target_fields=(('name', 'ФИО Преподавателя'),))
+        self.type = ForeignKeyField(title='Типы пары', col_name='type_id', target_model_class=LessonTypesModel, target_fields=(('name', 'Тип'),))
+        self.weekday = ForeignKeyField(title='День недели', col_name='weekday_id', target_model_class=WeekdaysModel, target_fields=(('name', 'День недели'),))
 
 
 class LogStatusModel(BasicModel):
@@ -343,7 +337,7 @@ class LogModel(BasicModel):
 
     def __init__(self):
         super().__init__()
-        self.status = ForeignKeyField(title='Статус', col_name='status', target_model=LogStatusModel, target_fields=(('name', 'Статус'),))
+        self.status = ForeignKeyField(title='Статус', col_name='status', target_model_class=LogStatusModel, target_fields=(('name', 'Статус'),))
         self.logged_table_name = StringField(col_name='table_name', title='Таблица')
         self.logged_table_pk = IntegerField(col_name='table_pk', title='Ключ')
         # TODO: fix creation
@@ -351,9 +345,9 @@ class LogModel(BasicModel):
 
     def get_status(self, pk, past_updated, now_updated):
         cur = get_cursor()
-        log_status = self.status.target_model()
         # Wanna see some magic? TODO: refactor
-        sql = SQLSelect(self, [getattr(self, log_status.table_name + '__' + log_status.main_field.col_name)], rows=1)
+        # [getattr(self, log_status.table_name + '__' + log_status.main_field.col_name)]
+        sql = SQLSelect(self, [self.status.main_field], rows=1)
         sql.add_conditions(BetweenCondition(self.datetime.qualified_col_name, past_updated, now_updated))
         sql.sort_field_name = self.datetime.qualified_col_name
         sql.sort_order = 'DESC'
