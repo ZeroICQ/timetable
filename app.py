@@ -120,7 +120,6 @@ def edit(table, pk=None):
     data['pk'] = pk
     fields = model.fields_own
     data['fields'] = fields
-    data['last_update'] = datetime.now().timestamp()
 
     values = None
     deleted = False
@@ -142,6 +141,7 @@ def edit(table, pk=None):
     if not values and not deleted:
         abort(404)
 
+    data['last_update'] = datetime.now().timestamp()
     data['deleted'] = deleted
     data['values'] = values
     return data
@@ -220,8 +220,12 @@ def record_get(table, pk):
     last_updated = datetime.fromtimestamp(last_updated)
 
     log = models.LogModel()
-    data['status'] = log.get_status(pk, last_updated, now_update)
+    status = log.get_status(pk, last_updated, now_update)
 
+    if status == log.actions['modify']:
+        values = model.fetch_by_pk(pk, self.fields_resolved_fks)
+
+    data['status'] = status
     # values = model.fetch_by_pk(pk, fields)
     # data['values'] = {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
 

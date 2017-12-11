@@ -4,8 +4,6 @@ from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyFiel
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
 from conditions import BetweenCondition
-from datetime import datetime
-import fields_wrappers
 
 
 def get_db():
@@ -58,6 +56,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         self._fields_no_fk = None
         self._fields_own = None
         self._fields_main = None
+        self._fields_resolved_fks = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
@@ -112,6 +111,12 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self._fields_main = [self.pk, self.main_field]
 
         return self._fields_main
+
+    @property
+    def fields_resolved_fks(self):
+        if self._fields_resolved_fks is None:
+            self._fields_resolved_fks = self.fields_own + [field.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
+        return self._fields_resolved_fks
 
     def get_pages(self, fields=None, conditions=None, pagination=None):
         cur = get_cursor()
