@@ -34,7 +34,7 @@ class SQLBasicBuilder:
         except TypeError:
             self._append_condition(conditions)
 
-    def add_equal_condition(self, field_name, value, logic_operator=None):
+    def add_equal_condition(self, field_name, value, logic_operator='AND'):
         self.add_conditions(BasicCondition(field_name, value, '=', logic_operator))
 
     def execute(self, cur):

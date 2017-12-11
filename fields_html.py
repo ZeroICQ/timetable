@@ -11,21 +11,21 @@ def markup(get_field_html):
 
         html = get_field_html(field, val, params, *args, **kwargs)
         html = '<label>%(label)s</label>' + html
-        html += '<div class="input-group input-group-sm server-state-container" style="display:none">' \
+        html += '<div class="input-group input-group-sm server-state-container" style="' + ('display:none' if 'modified_value' not in kwargs else '') + '">' \
                 '<span class="input-group-addon">База:</span>' \
-                '<input type="text" class="form-control form-control-sm field-server-state" value="" disabled>' \
+                '<input type="text" class="form-control form-control-sm field-server-state" value="' + (kwargs['modified_value'] if 'modified_value' in kwargs else '') +'" disabled>' \
                 '</div>'
         return Markup(html) % params
     return wrap
 
 
 @markup
-def string_field(field, val, params=None):
+def string_field(field, val, params=None, **kwargs):
     return '<input name="%(name)s" class="form-control form-control-sm %(classes)s" type="text" value="%(val)s">'
 
 
 @markup
-def int_field(field, val, params=None):
+def int_field(field, val, params=None, **kwargs):
     return '<input name="%(name)s" class="form-control form-control-sm %(classes)s" type="number" value="%(val)s">'
 
 
@@ -44,5 +44,5 @@ def fk_field(field, val, params=None, **kwargs):
 
 
 @markup
-def timestamp_field(field, val, params=None):
+def timestamp_field(field, val, params=None, **kwargs):
     return '<input name="%(name)s" class="form-control form-control-sm %(classes)s" type="datetime" value="%(val)s">'

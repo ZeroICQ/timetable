@@ -34,14 +34,14 @@ $(document).ready(function () {
             },
             success: function(data) {
                 lastUpdated = data['last_update'];
+                $('#last-update').attr('value', lastUpdated)
                 console.log(data);
                 changeStatus(data.status, data.values);
             },
         });
     }
 
-    setInterval(checkForUpdate, 5000);
-    checkForUpdate();
+    setInterval(checkForUpdate, 3000);
 });
 </script
 {% endif %}

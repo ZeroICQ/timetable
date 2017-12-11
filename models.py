@@ -3,7 +3,7 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
-from conditions import BetweenCondition
+from conditions import BetweenCondition, BasicCondition
 
 
 def get_db():
@@ -350,12 +350,14 @@ class LogModel(BasicModel):
         # TODO: fix creation
         self.datetime = TimestampField(col_name='change_time', title='Время')
 
-    def get_status(self, pk, past_updated, now_updated):
+    def get_status(self, pk, table_name, past_updated, now_updated):
         cur = get_cursor()
-        # Wanna see some magic? TODO: refactor
         # [getattr(self, log_status.table_name + '__' + log_status.main_field.col_name)]
         sql = SQLSelect(self, [self.status.main_field], rows=1)
         sql.add_conditions(BetweenCondition(self.datetime.qualified_col_name, past_updated, now_updated))
+        sql.add_equal_condition(self.logged_table_pk.qualified_col_name, pk)
+        sql.add_equal_condition(self.logged_table_name.qualified_col_name, table_name)
+
         sql.sort_field_name = self.datetime.qualified_col_name
         sql.sort_order = 'DESC'
         sql.execute(cur)

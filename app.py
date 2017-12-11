@@ -109,7 +109,7 @@ def catalog(table=''):
 
 @app.route("/<table>/edit/<int:pk>", methods=['GET', 'POST'])
 @misc.templated('edit.html')
-def edit(table, pk=None):
+def edit(table, pk):
     data = {}
 
     if table not in tables:
@@ -126,6 +126,23 @@ def edit(table, pk=None):
 
     if request.method == 'POST':
         action = request.form.get('action', None)
+        last_updated = request.form.get('last_update', type=float)
+
+        if not last_updated:
+            abort(404)
+
+        # TODO: refactor
+        log = models.LogModel()
+        status = log.get_status(pk, model.table_name, datetime.fromtimestamp(last_updated), datetime.now())
+        if status == 'MODIFIED':
+            values = [request.form.get(field.qualified_col_name, None) for field in fields]
+            modified_values = model.fetch_by_pk(pk, model.fields_short_resolved_no_pk)
+            data['already_modified'] = True
+            data['modified_values'] = modified_values
+            data['values'] = values
+            data['last_update'] = datetime.now().timestamp()
+            return data
+
         if action == 'delete':
             values = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
             deleted = len(values) > 0 and not values.count(None) == len(values)
@@ -220,7 +237,7 @@ def record_get(table, pk):
     last_updated = datetime.fromtimestamp(last_updated)
 
     log = models.LogModel()
-    status = log.get_status(pk, last_updated, now_update)
+    status = log.get_status(pk, model.table_name, last_updated, now_update)
 
     if status == 'MODIFIED':
         values = model.fetch_by_pk(pk, model.fields_short_resolved_no_pk)
