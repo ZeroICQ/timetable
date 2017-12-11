@@ -127,10 +127,9 @@ def edit(table, pk=None):
     if request.method == 'POST':
         action = request.form.get('action', None)
         if action == 'delete':
-            main_field = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
-            deleted = len(main_field) > 0
-            data['record_name'] = main_field
-            data['close_window'] = True
+            main_fields = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
+            deleted = len(main_fields) > 0
+            data['record_name'] = main_fields[0]
         elif action == 'close' or action == 'edit':
             new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
             values = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
@@ -207,6 +206,7 @@ def record_get(table, pk):
     data = {}
 
     last_updated = request.args.get('last_update', None, type=float)
+    values = None
 
     if table not in tables or last_updated is None:
         abort(404)
@@ -222,12 +222,11 @@ def record_get(table, pk):
     log = models.LogModel()
     status = log.get_status(pk, last_updated, now_update)
 
-    if status == log.actions['modify']:
-        values = model.fetch_by_pk(pk, self.fields_resolved_fks)
+    if status == 'MODIFIED':
+        values = model.fetch_by_pk(pk, model.fields_short_resolved_no_pk)
 
     data['status'] = status
-    # values = model.fetch_by_pk(pk, fields)
-    # data['values'] = {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
+    data['values'] = values
 
     return jsonify(data)
 

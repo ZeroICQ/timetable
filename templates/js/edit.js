@@ -4,13 +4,18 @@ $(document).ready(function () {
 
     var lastUpdated = {{ last_update }};
 
-    var changeStatus = function(status) {
+    var changeStatus = function(status, values) {
         if (status === 'DELETED') {
             $('#modify-alert').slideUp('medium');
             $('#delete-alert').slideDown('medium');
         } else if (status === 'MODIFIED') {
             $('#modify-alert').slideDown('medium');
             $('#delete-alert').slideUp('medium');
+
+            $('.field-server-state').each(function(i) {
+                $(this).attr('value', values[i]);
+                $(this).parent('.server-state-container').slideDown('medium');
+            })
         }
     }
 
@@ -29,7 +34,7 @@ $(document).ready(function () {
             success: function(data) {
                 lastUpdated = data['last_update'];
                 console.log(data);
-                changeStatus(data.status);
+                changeStatus(data.status, data.values);
             },
         });
     }

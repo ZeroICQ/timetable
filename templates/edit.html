@@ -9,15 +9,20 @@
   </div>
   {{ super() }}
 
-  {% if deleted is defined and deleted%}
-    {{record_name}} is successfully deleted
+  {% if deleted is defined and deleted %}
+    <div class="alert alert-warning" role="alert">
+      <h4 class="alert-heading">Запись {{record_name}} успешно удалена</h4>
+    </div>
   {% else %}
+
     <div class="col col-md-4">
       <form method="post" class="edit_form">
         <div class="form-group">
           {% if values is defined %}
             {% for field in fields %}
-              {{ field.get_html(values[loop.index0]) }}
+              <div class="form-group">
+                {{ field.get_html(values[loop.index0]) }}
+              </div>
             {% endfor %}
           {% endif %}
         </div>

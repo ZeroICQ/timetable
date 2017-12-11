@@ -45,8 +45,8 @@ class BasicModel(metaclass=BasicModelMetaclass):
     title = None
     table_name = None
 
-    actions = {'delete': 1,
-               'modify': 2}
+    actions = {'deleted': 1,
+               'modified': 2}
 
     def __init__(self):
         super().__init__()
@@ -57,6 +57,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         self._fields_own = None
         self._fields_main = None
         self._fields_no_pk = None
+        self._fields_short_resolved_no_pk = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
@@ -85,8 +86,14 @@ class BasicModel(metaclass=BasicModelMetaclass):
     @property
     def fields_short_resolved(self):
         if self._fields_short_resolved is None:
-            self._fields_short_resolved = [self.pk] + self.fields_own + self.fields_main
+            self._fields_short_resolved = [self.pk] + self.fields_short_resolved_no_pk
         return self._fields_short_resolved
+
+    @property
+    def fields_short_resolved_no_pk(self):
+        if self._fields_short_resolved_no_pk is None:
+            self._fields_short_resolved_no_pk = self.fields_own + self.fields_main
+        return self._fields_short_resolved_no_pk
 
     @property
     def fields_own(self):
@@ -155,7 +162,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         result_fields = cur.fetchone()
 
-        self.log_action(cur, 'modify', pk_val)
+        self.log_action(cur, 'modified', pk_val)
 
         cur.transaction.commit()
         return result_fields
@@ -166,7 +173,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         result_fields = cur.fetchone()
-        self.log_action(cur, 'delete', pk_val)
+        self.log_action(cur, 'deleted', pk_val)
         cur.transaction.commit()
         return result_fields
 

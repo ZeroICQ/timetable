@@ -11,6 +11,10 @@ def markup(get_field_html):
 
         html = get_field_html(field, val, params, *args, **kwargs)
         html = '<label>%(label)s</label>' + html
+        html += '<div class="input-group input-group-sm server-state-container" style="display:none">' \
+                '<span class="input-group-addon">База:</span>' \
+                '<input type="text" class="form-control form-control-sm field-server-state" value="" disabled>' \
+                '</div>'
         return Markup(html) % params
     return wrap
 
