@@ -191,34 +191,31 @@ def create(table):
 
     return data
 
-# TODO: delete
-# @app.route("/<table>/log/", methods=['GET'])
-# def get_log(table):
-#     data = {}
-#     tables = get_tables()
-#
-#     last_update = request.args.get('last_update', None, type=float)
-#
-#     if not (0 <= table < len(tables)) or last_update is None:
-#         return jsonify(data)
-#
-#     last_update = datetime.fromtimestamp(last_update)
-#
-#     pks = request.args.getlist('pk', type=int)
-#     logs = models.LogModel()
-#     changes = logs.get_changes(last_update, pks, tables[table]().table_name)
-#
-#     ch_dict = {}
-#     for change in changes:
-#         ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
-#
-#     data['changes'] = ch_dict
-#     data['last_update'] = datetime.now().timestamp()
-#
-#     return jsonify(data)
+@app.route("/<table>/log/", methods=['GET'])
+def get_log(table):
+    data = {}
+
+    last_updated = request.args.get('last_update', None, type=float)
+
+    if table not in tables or last_updated is None:
+        abort(404)
+
+    pks = request.args.getlist('pk', type=int)
+
+    logs = models.LogModel()
+    changes = logs.get_changes(last_update, pks, tables[table]().table_name)
+
+    ch_dict = {}
+    for change in changes:
+        ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
+
+    data['changes'] = ch_dict
+    data['last_update'] = datetime.now().timestamp()
+
+    return jsonify(data)
 
 
-@app.route('/<table>/<int:pk>.json', methods=['GET'])
+@app.route('/<table>/log/<int:pk>.json', methods=['GET'])
 def record_get(table, pk):
     data = {}
 

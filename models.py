@@ -352,7 +352,6 @@ class LogModel(BasicModel):
 
     def get_status(self, pk, table_name, past_updated, now_updated):
         cur = get_cursor()
-        # [getattr(self, log_status.table_name + '__' + log_status.main_field.col_name)]
         sql = SQLSelect(self, [self.status.main_field], rows=1)
         sql.add_conditions(BetweenCondition(self.datetime.qualified_col_name, past_updated, now_updated))
         sql.add_equal_condition(self.logged_table_pk.qualified_col_name, pk)
@@ -365,6 +364,8 @@ class LogModel(BasicModel):
         result = cur.fetchone()
         status = result[0] if result else None
         return status
+
+    def get_statuses(self, pks, table_name):
 
     # TODO: delete
     # def get_changes(self, date_start, pks, table_name):
