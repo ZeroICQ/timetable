@@ -68,6 +68,11 @@ class BasicModel(metaclass=BasicModelMetaclass):
             if isinstance(field, BaseField):
                 field.table_name = self.table_name
 
+    def get_field_by_col_name(self, col_name):
+        for field in self.fields:
+            if field.col_name == col_name:
+                return field
+
     @property
     def main_field(self):
         return self.pk

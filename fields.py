@@ -41,7 +41,11 @@ class ForeignKeyField(BaseField):
         self.target_pk = target_pk
         self.target_fields = target_fields
         self.target_model = target_model_class()
-    # ASK about collisions
+
+        for f_name, f_title in self.target_fields:
+            self.target_model.get_field_by_col_name(f_name).title = f_title
+
+    # !ASK about collisions
     def __getattr__(self, item):
         return getattr(self.target_model, item)
 
