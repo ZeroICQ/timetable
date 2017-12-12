@@ -223,13 +223,15 @@ def analytics(table):
     records = model.fetch_all(return_fields=model.fields_resolved)
 
     for record in records:
-        x = record[x_field]
-        y = record[y_field]
+        x = record[model.get_field_by_col_name(x_field).resolved_name]
+        y = record[model.get_field_by_col_name(y_field).resolved_name]
         all_x.add(x)
         all_y.add(y)
         if y not in analytics_table:
             analytics_table[y] = {}
-        analytics_table[y][x] = record[model.main_field.qualified_col_name]
+        if x not in analytics_table[y]:
+            analytics_table[y][x] = []
+        analytics_table[y][x].append({field.title: record[field.qualified_col_name] for field in model.fields_short_resolved})
 
 
 

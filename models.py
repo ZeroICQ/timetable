@@ -70,7 +70,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
     def get_field_by_col_name(self, col_name):
         for field in self.fields:
-            if field.col_name == col_name:
+            if field.col_name.lower() == col_name or field.qualified_col_name == col_name:
                 return field
 
     @property

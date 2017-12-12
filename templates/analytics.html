@@ -38,16 +38,25 @@
     <table class="table table-bordered">
       {% for y in all_y %}
         <tr>
+          <td>{{y}}</td>
           {% for x in all_x %}
             <td>
-              {#{% for el in analytics_table[y][x] %}#}
-                 {{  analytics_table[y][x] }}
-              <br>
-              {#{% endfor %}#}
+              {% for el in analytics_table[y][x] %}
+                 {{  el }}
+                  <br><br><br>
+              {% endfor %}
             </td>
           {% endfor %}
         </tr>
       {% endfor %}
+      <tr>
+        <td></td>
+        {% for x in all_x %}
+          <td>
+            {{x}}
+          </td>
+        {% endfor %}
+      </tr>
     </table>
   </div>
 </div>
