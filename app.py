@@ -239,6 +239,14 @@ def record_get(table, pk):
     log = models.LogModel()
     status = log.get_status(pk, model.table_name, last_updated, now_update)
 
+    if status is None and model.fields_fks:
+        fks_values = model.fetch_by_pk(pk, model.fields_fks)
+        for fk in model.fields_fks:
+            f_table_status = log.get_status(fks_values[fk.qualified_col_name], fk.pk.table_name, last_updated, now_update)
+            if f_table_status == 'MODIFIED' or f_table_status == 'DELETED':
+                status = 'MODIFIED'
+                break
+
     if status == 'MODIFIED':
         values = model.fetch_by_pk(pk, model.fields_short_resolved_no_pk)
 

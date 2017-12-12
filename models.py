@@ -58,6 +58,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         self._fields_main = None
         self._fields_no_pk = None
         self._fields_short_resolved_no_pk = None
+        self._fields_fks = None
 
     def _after_init_(self):
         self.resolve_foreign_keys()
@@ -76,6 +77,12 @@ class BasicModel(metaclass=BasicModelMetaclass):
         if self._fields is None:
             self._fields = [val for attr, val in self.__dict__.items() if isinstance(val, BaseField)]
         return self._fields
+
+    @property
+    def fields_fks(self):
+        if self._fields_fks is None:
+            self._fields_fks = [field for field in self.fields if isinstance(field, ForeignKeyField)]
+        return self._fields_fks
 
     @property
     def fields_no_pk(self):
