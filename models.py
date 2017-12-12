@@ -3,7 +3,7 @@ import fdb
 from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyField, TimestampField
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
-from conditions import BetweenCondition, BasicCondition
+from conditions import BetweenCondition, BasicCondition, InCondition
 
 
 def get_db():
@@ -177,6 +177,16 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         return self.pack_values(fields, cur.fetchone())
+
+    def fetch_by_pks(self, pks, fields=None):
+        cur = get_cursor()
+        if fields is None:
+            fields = self.fields_no_pk
+
+        sql = SQLSelect(self, fields)
+        sql.add_conditions(InCondition(self.pk.qualified_col_name, pks))
+        sql.execute(cur)
+        return self.pack_values(fields, cur.fetchall())
 
     def update(self, return_fields, new_fields, pk_val):
         cur = get_cursor()
@@ -392,8 +402,17 @@ class LogModel(BasicModel):
         status = result[0] if result else None
         return status
 
-    def get_statuses(self, pks, table_name):
-        pass
+    def get_statuses(self, pks, table_name, past_updated, now_updated):
+        cur = get_cursor()
+        sql = SQLLogSelect(self, [self.logged_table_pk, self.status.name])
+        sql.add_equal_condition(self.logged_table_name.qualified_col_name, table_name)
+        sql.add_conditions(BetweenCondition(self.datetime.qualified_col_name, past_updated, now_updated))
+        sql.add_conditions(InCondition(self.logged_table_pk.qualified_col_name, pks))
+
+        sql.execute(cur)
+
+        return cur.fetchall()
+
 
     # TODO: delete
     # def get_changes(self, date_start, pks, table_name):

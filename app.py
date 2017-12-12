@@ -72,7 +72,7 @@ def catalog(table=''):
 
     data['fields'] = selected_model.fields_short_resolved
     data['pk'] = selected_model.pk
-    # data['last_update'] = datetime.now().timestamp()
+
 
     # SEARCH
     search_fields = request.args.getlist('search_field', type=type_checkers.model_field(selected_model))
@@ -90,6 +90,7 @@ def catalog(table=''):
 
     query_params['sort_field'] = sort_field
     query_params['sort_order'] = sort_order
+    data['last_update'] = datetime.now().timestamp()
 
     if search_fields and search_vals:
         query_params['search_field'] = search_fields
@@ -201,20 +202,28 @@ def get_log(table):
     last_updated = request.args.get('last_update', None, type=float)
 
     if table not in tables or last_updated is None:
-        abort(404)
+        data = 'error'
+        return jsonify(data)
+
+    model = tables[table]()
 
     pks = request.args.getlist('pk', type=int)
 
     logs = models.LogModel()
-    changes = logs.get_changes(last_update, pks, tables[table]().table_name)
 
-    ch_dict = {}
-    for change in changes:
-        ch_dict[change.get(logs.logged_table_pk.col_name)] = change.get(logs.status.target_fields[0][0])
+    statuses = dict(logs.get_statuses(pks, model.table_name, datetime.fromtimestamp(last_updated), datetime.now()))
 
-    data['changes'] = ch_dict
+    #check for foreign tables
+    # for pk in pks:
+    #     if str(pk) not in statuses:
+
+    updating_pks = [pk for pk in pks if pk in statuses]
+
+    values = model.fetch_by_pks(updating_pks, model.fields_short_resolved)
+
+    data['values'] = dict(zip(updating_pks, values))
     data['last_update'] = datetime.now().timestamp()
-
+    data['statuses'] = statuses
     return jsonify(data)
 
 

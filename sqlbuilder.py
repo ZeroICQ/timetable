@@ -149,35 +149,51 @@ class SQLBasicSelect(SQLBasicBuilder):
         return query
 
     @property
-    def query(self):
-        compiled_query = super().query
-        compiled_query += self.selected_fields_query
-        compiled_query += 'from ' + self.target_model.table_name + ' '
-
+    def left_joins_query(self):
+        query = ''
         for field in self.left_joins:
-            compiled_query += 'LEFT JOIN {target_table} on {from_table}.{col_name}={target_table}.{target_pk} '.format(
+            query += 'LEFT JOIN {target_table} on {from_table}.{col_name}={target_table}.{target_pk} '.format(
                 target_table=field.target_model.table_name,
                 col_name=field.col_name,
                 target_pk=field.target_pk,
                 from_table=self.target_model.table_name
             )
+        return query
+
+    @property
+    def query(self):
+        compiled_query = super().query
+        compiled_query += self.selected_fields_query
+        compiled_query += 'from ' + self.target_model.table_name + ' '
+        compiled_query += self.left_joins_query
 
         compiled_query += self.conditions_query
         return compiled_query
 
 
 class SQLLogSelect(SQLBasicSelect):
-    def conditions_query(self, query):
-        query = super().conditions_query(query)
-        subselect = 'AND {table_name}.{time_col_name} = (select max({tmp_table_name}.{time_col_name}) from {table_name} {tmp_table_name} ' \
-                    'where {tmp_table_name}.{table_pk} = {table_name}.{table_pk}) '.format(
-                        tmp_table_name=self.target_model.table_name + '1',
-                        time_col_name=self.target_model.datetime.col_name,
-                        table_name=self.target_model.table_name,
-                        table_pk=self.target_model.logged_table_pk.col_name)
+    def __init__(self, target_table, fields):
+        super().__init__(target_table, fields)
 
-        query += subselect
-        return query
+    @property
+    def query(self):
+        compiled_query = self.operation + ' '
+        compiled_query += self.selected_fields_query
+        compiled_query += 'from ' + self.target_model.table_name + ' '
+        compiled_query += self.left_joins_query
+        compiled_query += 'inner join (select {table_pk}, {table_name}, max({change_time}) {change_time} ' \
+                          'from {log} GROUP BY {table_pk}, {table_name}) l1 on l1.{table_pk} = {outer_table_pk} and ' \
+                          'l1.{table_name} = {outer_table_name} and ' \
+                          'l1.{change_time} = {outer_change_time} '.format(table_pk=self.target_model.logged_table_pk.col_name,
+                                                                          table_name=self.target_model.logged_table_name.col_name,
+                                                                          change_time=self.target_model.datetime.col_name,
+                                                                          log=self.target_model.table_name,
+                                                                          outer_table_pk=self.target_model.logged_table_pk.qualified_col_name,
+                                                                          outer_table_name=self.target_model.logged_table_name.qualified_col_name,
+                                                                          outer_change_time=self.target_model.datetime.qualified_col_name)
+
+        compiled_query += self.conditions_query
+        return compiled_query
 
 
 class SQLCountAll(SQLBasicSelect):
@@ -230,3 +246,5 @@ class SQLSelect(SQLBasicSelect):
         compiled_query += self.offset_query
         compiled_query += self.rows_query
         return compiled_query
+
+
