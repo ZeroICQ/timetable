@@ -213,11 +213,14 @@ def get_log(table):
 
     statuses = dict(logs.get_statuses(pks, model.table_name, datetime.fromtimestamp(last_updated), datetime.now()))
 
-    #check for foreign tables
-    # for pk in pks:
-    #     if str(pk) not in statuses:
-
     updating_pks = [pk for pk in pks if pk in statuses]
+
+    # TODO: check for foreign tables
+    # for pk in pks:
+    #     if pk in updating_pks:
+    #         continue
+    #
+    #     if :
 
     values = model.fetch_by_pks(updating_pks, model.fields_short_resolved)
 
