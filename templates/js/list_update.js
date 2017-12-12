@@ -83,6 +83,6 @@
 //        });
     };
     setInterval(checkForUpdate, 3000);
-    $('#debugich').click(checkForUpdate);
+    
 </script>
 {% endif %}
