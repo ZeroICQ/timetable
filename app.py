@@ -195,6 +195,50 @@ def create(table):
 
     return data
 
+
+@app.route('/analytics/<table>')
+@misc.templated('analytics.html')
+def analytics(table):
+    data = {}
+    data['navigation_controller'] = 'analytics'
+
+    if table not in tables:
+        return data
+
+    model = tables[table]()
+    data['selected_table'] = table
+    data['fields'] = model.fields_no_pk
+    data['tables'] = tables
+
+    x_field = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
+    y_field = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
+
+    if not (x_field or y_field):
+        return data
+
+    analytics_table = {}
+    all_x = set()
+    all_y = set()
+
+    records = model.fetch_all(return_fields=model.fields_resolved)
+
+    for record in records:
+        x = record[x_field]
+        y = record[y_field]
+        all_x.add(x)
+        all_y.add(y)
+        if y not in analytics_table:
+            analytics_table[y] = {}
+        analytics_table[y][x] = record[model.main_field.qualified_col_name]
+
+
+
+    data['analytics_table'] = analytics_table
+    data['all_x'] = all_x
+    data['all_y'] = all_y
+    return data
+
+
 @app.route("/<table>/log/", methods=['GET'])
 def get_log(table):
     data = {}

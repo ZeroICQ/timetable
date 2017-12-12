@@ -27,6 +27,14 @@ def model_field(model):
     return check_function
 
 
+def model_field_own(model):
+    def check_function(field_name):
+        if field_name not in [field.qualified_col_name for field in model.fields]:
+            raise ValueError
+        return field_name
+    return check_function
+
+
 def logic_operators(val):
     if val not in conditions.BasicCondition.logic_operators:
         raise ValueError

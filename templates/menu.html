@@ -53,13 +53,13 @@
   <input type="submit" value="Искать" class="form-control form-control-sm btn btn-sm btn-primary">
 
 
-<nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
+  <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
   {% for table_uri, table in tables.items() %}
     <a class="nav-link {% if selected_table is defined and selected_table ==  table_uri %} active {% endif %}" href="{{ url_for('catalog', table=table_uri, page_size=request.args.get('page_size', 0)) }}">
       {{ table.title }}
     </a>
   {% endfor %}
-</nav>
+  </nav>
 
   <div class="form-group">
     <label for="pagination_choice">Показать на странице</label>

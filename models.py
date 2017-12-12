@@ -113,6 +113,11 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self._fields_own = [field for field in self.fields if not (isinstance(field, PKField) or isinstance(field, ForeignKeyField))]
         return self._fields_own
 
+    # TODO: optimize
+    @property
+    def fields_resolved(self):
+        return self.fields_short_resolved + self.fields_fks
+
     @property
     def fields_main(self):
         if self._fields_main is None:

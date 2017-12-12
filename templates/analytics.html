@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="row">
+  <div class="col-sm-12 col-md-3">
+    <form>
+      <div class="form-group">
+        <label>X:</label>
+        <select name='x_field' class="form-control form-control-sm">
+          {% for field in fields %}
+            <option {#{% if field.qualified_col_name == search_field %} selected {% endif %}#} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Y:</label>
+        <select name='y_field' class="form-control form-control-sm">
+        {% for field in fields %}
+          <option {#{% if field.qualified_col_name == search_field %} selected {% endif %}#} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
+        {% endfor %}
+        </select>
+      </div>
+      <input type="submit" value="Применить" class="form-control form-control-sm btn btn-sm btn-primary">
+    </form>
+
+
+     <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
+       {% for table_uri, table in tables.items() %}
+         <a class="nav-link {% if selected_table is defined and selected_table == table_uri %} active {% endif %}" href="{{ url_for('analytics', table=table_uri) }}">
+           {{ table.title }}
+         </a>
+      {% endfor %}
+     </nav>
+  </div>
+
+  <div class="col col-md-9">
+    <table class="table table-bordered">
+      {% for y in all_y %}
+        <tr>
+          {% for x in all_x %}
+            <td>
+              {#{% for el in analytics_table[y][x] %}#}
+                 {{  analytics_table[y][x] }}
+              <br>
+              {#{% endfor %}#}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
