@@ -19,17 +19,15 @@
     <div class="col col-md-4">
       <form method="post" class="edit_form">
         <div class="form-group">
-          {% if values is defined %}
             {% for field in fields %}
               <div class="form-group">
                 {% if already_modified is defined and already_modified %}
-                  {{ field.get_html(values[loop.index0], modified_value=modified_values[loop.index0])}}
+                  {{ field.get_html(values[field.qualified_col_name], modified_value=modified_values[field.resolved_name])}}
                 {% else %}
-                  {{ field.get_html(values[loop.index0]) }}
+                  {{ field.get_html(values[field.qualified_col_name]) }}
                 {% endif %}
               </div>
             {% endfor %}
-          {% endif %}
         </div>
         <!--<div class="btn-group">-->
           <button type="submit" name="action" value="edit" class="btn btn-sm btn-success">Сохранить и продолжить редактирование</button>

@@ -14,6 +14,10 @@ class BaseField:
     def qualified_col_name(self):
         return '{}.{}'.format(self.table_name, self.col_name)
 
+    @property
+    def resolved_name(self):
+        return self.qualified_col_name
+
     def get_html(self, value=None, **kwargs):
         return fields_html.string_field(self, value, **kwargs)
 
@@ -37,14 +41,18 @@ class ForeignKeyField(BaseField):
         self.target_pk = target_pk
         self.target_fields = target_fields
         self.target_model = target_model_class()
-
+    # ASK about collisions
     def __getattr__(self, item):
         return getattr(self.target_model, item)
 
     def get_html(self, value=None, **kwargs):
         model = self.target_model
-        choices = model.fetch_all()
-        return fields_html.fk_field(self, value, choices=choices, **kwargs)
+        choices = model.fetch_all([model.pk, model.main_field], pack=False)
+        return fields_html.fk_field(self, value, choices=choices, pk_col_name=model.pk.qualified_col_name, **kwargs)
+
+    @property
+    def resolved_name(self):
+        return self.target_model.main_field.qualified_col_name
 
 
 class StringField(BaseField):

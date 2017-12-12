@@ -14,7 +14,7 @@ $(document).ready(function () {
             $('#delete-alert').slideUp('medium');
 
             $('.field-server-state').each(function(i) {
-                $(this).attr('value', values[i]);
+                $(this).attr('value', values[$(this).data('res-col-name')]);
                 $(this).parent('.server-state-container').slideDown('medium');
             })
         }

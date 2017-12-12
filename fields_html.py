@@ -1,5 +1,6 @@
 from flask import Markup
 
+
 def markup(get_field_html):
     def wrap(field, val=None, *args, **kwargs):
         params = {
@@ -9,12 +10,15 @@ def markup(get_field_html):
             'classes': 'edit-input'
         }
 
+        # TODO: refactor
         html = get_field_html(field, val, params, *args, **kwargs)
         html = '<label>%(label)s</label>' + html
-        html += '<div class="input-group input-group-sm server-state-container" style="' + ('display:none' if 'modified_value' not in kwargs else '') + '">' \
+        html += '<div class="input-group input-group-sm server-state-container" style="{style}">' \
                 '<span class="input-group-addon">База:</span>' \
-                '<input type="text" class="form-control form-control-sm field-server-state" value="' + (kwargs['modified_value'] if 'modified_value' in kwargs else '') +'" disabled>' \
-                '</div>'
+                '<input type="text" class="form-control form-control-sm field-server-state" value="{value}" disabled data-res-col-name={res_name}>' \
+                '</div>'.format(style=('display:none' if 'modified_value' not in kwargs else ''),
+                                value=(str(kwargs['modified_value']) if 'modified_value' in kwargs else ''),
+                                res_name=field.resolved_name)
         return Markup(html) % params
     return wrap
 

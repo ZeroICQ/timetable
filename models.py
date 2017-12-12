@@ -107,6 +107,18 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self._fields_main = [field.target_model.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
         return self._fields_main
 
+    @staticmethod
+    def pack_values(fields, values):
+        # tuple - one elem. List of tuple - many elements
+        if isinstance(values, tuple):
+            return {field.qualified_col_name: values[idx] for idx, field in enumerate(fields)}
+        elif isinstance(values, list):
+            return [{field.qualified_col_name: value[idx] for idx, field in enumerate(fields)} for value in values]
+        elif values is None:
+            return None
+        else:
+            raise TypeError
+
     # @property
     # def fields_unresolved(self):
     #     if self._fields_unresolved is None:
@@ -133,7 +145,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
 
         return ceil(rows/on_page)
 
-    def fetch_all(self, return_fields=None, conditions=None, sort_field=None, sort_order=None, pagination=None):
+    def fetch_all(self, return_fields=None, conditions=None, sort_field=None, sort_order=None, pagination=None, pack=True):
         cur = get_cursor()
         if return_fields is None:
             return_fields = self.fields_short_resolved
@@ -143,7 +155,11 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.sort_order = sort_order
         sql.sort_field_name = sort_field
         sql.execute(cur)
-        return cur.fetchall()
+
+        if not pack:
+            return cur.fetchall()
+
+        return self.pack_values(return_fields, cur.fetchall())
 
     def fetch_by_pk(self, pk_val, fields=None):
         cur = get_cursor()
@@ -153,29 +169,33 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql = SQLSelect(self, fields)
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
-        return cur.fetchone()
+        return self.pack_values(fields, cur.fetchone())
 
     def update(self, return_fields, new_fields, pk_val):
         cur = get_cursor()
-        sql = SQLBasicUpdate(self, new_fields, return_fields=return_fields)
+        sql = SQLBasicUpdate(self, new_fields, return_fields=self.fields)
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         result_fields = cur.fetchone()
 
-        self.log_action(cur, 'modified', pk_val)
+        if not all(v is None for v in result_fields):
+            self.log_action(cur, 'modified', pk_val)
 
         cur.transaction.commit()
-        return result_fields
+        return self.pack_values(return_fields, result_fields)
 
     def delete_by_pk(self, pk_val, return_fields=None):
         cur = get_cursor()
-        sql = SQLBasicDelete(self, return_fields=return_fields)
+        sql = SQLBasicDelete(self, return_fields=self.fields)
         sql.add_equal_condition(self.pk.qualified_col_name, pk_val)
         sql.execute(cur)
         result_fields = cur.fetchone()
-        self.log_action(cur, 'deleted', pk_val)
+
+        if not all(v is None for v in result_fields):
+            self.log_action(cur, 'deleted', pk_val)
+
         cur.transaction.commit()
-        return result_fields
+        return self.pack_values(return_fields, result_fields)
 
     def insert(self, new_fields):
         cur = get_cursor()
@@ -366,6 +386,7 @@ class LogModel(BasicModel):
         return status
 
     def get_statuses(self, pks, table_name):
+        pass
 
     # TODO: delete
     # def get_changes(self, date_start, pks, table_name):

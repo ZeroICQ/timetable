@@ -71,6 +71,7 @@ def catalog(table=''):
     data['selected_table'] = table
 
     data['fields'] = selected_model.fields_short_resolved
+    data['pk'] = selected_model.pk
     # data['last_update'] = datetime.now().timestamp()
 
     # SEARCH
@@ -96,7 +97,7 @@ def catalog(table=''):
 
         conditions = create_conditions(search_fields, search_vals, compare_operators, logic_operators)
 
-        data['entries'] = selected_model.fetch_all(selected_model.fields_short_resolved, conditions, sort_field, sort_order, pagination)
+        data['entries'] = selected_model.fetch_all(conditions=conditions, sort_field=sort_field, sort_order=sort_order, pagination=pagination)
         data['pages'] = selected_model.get_pages(search_fields, conditions, pagination)
         query_params['logic_operator'] = logic_operators
         query_params['compare_operator'] = compare_operators
@@ -134,27 +135,29 @@ def edit(table, pk):
         # TODO: refactor
         log = models.LogModel()
         status = log.get_status(pk, model.table_name, datetime.fromtimestamp(last_updated), datetime.now())
+
         if status == 'MODIFIED':
-            values = [request.form.get(field.qualified_col_name, None) for field in fields]
-            modified_values = model.fetch_by_pk(pk, model.fields_short_resolved_no_pk)
+            old_values = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
+            modified_values = model.fetch_by_pk(pk, model.fields_short_resolved)
             data['already_modified'] = True
             data['modified_values'] = modified_values
-            data['values'] = values
+            data['values'] = old_values
             data['last_update'] = datetime.now().timestamp()
             return data
 
         if action == 'delete':
-            values = model.delete_by_pk(pk_val=pk, return_fields=[model.main_field])
-            deleted = len(values) > 0 and not values.count(None) == len(values)
-            data['record_name'] = values[0]
+            values = model.delete_by_pk(pk_val=pk, return_fields=model.fields)
+            deleted = values is not None
+            data['record_name'] = values[model.main_field.qualified_col_name]
         elif action == 'close' or action == 'edit':
             new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
-            values = model.update(return_fields=fields, new_fields=new_fields, pk_val=pk)
+            # test updating deleted record
+            values = model.update(return_fields=model.fields, new_fields=new_fields, pk_val=pk)
             data['close_window'] = action == 'close'
     else:
-        values = model.fetch_by_pk(pk)
+        values = model.fetch_by_pk(pk, model.fields)
 
-    if values.count(None) == len(values):
+    if not values or all(v is None for v in values.values()):
         abort(404)
 
     data['last_update'] = datetime.now().timestamp()

@@ -92,10 +92,9 @@ class SQLBasicInsert(SQLBasicBuilder):
 
 class SQLBasicUpdate(SQLBasicBuilder):
     def __init__(self, target_table, new_fields, return_fields=None):
-        new_fields = OrderedDict(new_fields)
-        super().__init__(operation='UPDATE', target_table=target_table, fields=[field for field in new_fields], return_fields=return_fields)
         self.new_fields = new_fields
-        self.params_before_where += [value if value != 'None' else None for value in new_fields.values()]
+        super().__init__(operation='UPDATE', target_table=target_table, fields=[field for field in self.new_fields], return_fields=return_fields)
+        self.params_before_where += [value if value != 'None' else None for value in self.new_fields.values()]
 
     @property
     def query(self):

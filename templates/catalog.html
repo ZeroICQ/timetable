@@ -45,10 +45,10 @@
         </thead>
 
         {% for entry in entries %}
-            <tr data-href="{{ url_for('edit', table=selected_table, pk=entry[0]) }}" data-pk="{{ entry[0] }}" class="entry">
-            {% for field in entry %}
+            <tr data-href="{{ url_for('edit', table=selected_table, pk=entry[pk.qualified_col_name]) }}" data-pk="{{ entry[pk.qualified_col_name] }}" class="entry">
+            {% for field in fields %}
               <td>
-                {{ field }}
+                {{ entry[field.qualified_col_name] }}
               </td>
             {% endfor %}
             </tr>
