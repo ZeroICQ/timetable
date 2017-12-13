@@ -1,0 +1,51 @@
+{% macro insert_search_field(search_field='', search_val='', logic_operator='', compare_operator='') %}
+    <div class="search_field_parameters">
+      <div class="form-group">
+        <label>Поле</label>
+        <select name='search_field' class="form-control form-control-sm">
+          {% for field in fields %}
+            <option {% if field.qualified_col_name == search_field %} selected {% endif %} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Значение</label>
+        <div class="form-row">
+          <div class="col">
+            <select name="logic_operator" class="form-control form-control-sm pl-0">
+              {% for operator in logic_search_operators_list %}
+                <option {% if operator == logic_operator %} selected {% endif %} value="{{ operator }}">{{ operator }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col">
+            <select name="compare_operator" class="form-control form-control-sm pl-0">
+              {% for operator in compare_search_operators_list %}
+                <option {% if operator == compare_operator %} selected {% endif %}  value="{{ operator }}">{{ operator }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-5">
+            <input name="search_val" type="search" class="form-control form-control-sm pl-0 pr-0" value="{{ search_val }}">
+          </div>
+        </div>
+
+      </div>
+      <div class="form-group">
+        <button type="button" class="add_search_field btn btn-success btn-sm"><span class="fa fa-plus"></span></button>
+        <button type="button" class="remove_search_field btn btn-danger btn-sm"><span class="fa fa-minus"></span></button>
+      </div>
+    </div>
+{% endmacro %}
+
+<div id="search_fields_container">
+  {% if not query_params['search_field'] %}
+    {{insert_search_field()}}
+  {% else %}
+    {% for search_field in query_params['search_field'] %}
+      {{insert_search_field(search_field, query_params['search_val'][loop.index0], query_params['logic_operator'][loop.index0], query_params['compare_operator'][loop.index0]) }}
+    {% endfor %}
+  {% endif %}
+</div>
+<input type="submit" value="Искать" class="form-control form-control-sm btn btn-sm btn-primary">

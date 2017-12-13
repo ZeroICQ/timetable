@@ -201,6 +201,8 @@ def create(table):
 @misc.templated('analytics.html')
 def analytics(table=None):
     data = {}
+    query_params = {}
+    data['query_params'] = query_params
 
     data['navigation_controller'] = 'analytics'
     data['tables'] = tables
@@ -241,8 +243,6 @@ def analytics(table=None):
         if x not in analytics_table[y]:
             analytics_table[y][x] = []
         analytics_table[y][x].append({field.qualified_col_name: record[field.qualified_col_name] for field in model.fields_short_resolved})
-
-
 
     data['analytics_table'] = analytics_table
     data['all_x'] = all_x
