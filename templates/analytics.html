@@ -34,33 +34,54 @@
   </div>
 
   <div class="col col-md-9">
-    <table class="table table-bordered">
-      <thead>
+    {% if x_field is defined and y_field is defined and x_field and y_field %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th align="right">{{x_field.title}}</th>
+            {% for x in all_x %}
+              <th rowspan="2">
+                {{x}}
+              </th>
+            {% endfor %}
+          </tr>
+          <tr>
+            <th align="left">{{y_field.title}}</th>
+          </tr>
+        </thead>
+        {% for y in all_y %}
+          <tr>
+            <th>{{y}}</th>
+            {% for x in all_x %}
+              <td>
+                {% if analytics_table[y][x] %}
+                  <table>
+                    <thead>
+                      {% for in_field in inner_fields %}
+                        <th>
+                          {{ in_field.title }}
+                        </th>
+                      {% endfor %}
+                    </thead>
+                    {% for el in analytics_table[y][x] %}
+                      <tr>
+                        {% for in_field in inner_fields %}
+                          <td>
+                            {{ el[in_field.qualified_col_name] }}
+                          </td>
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+                  </table>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
         <tr>
-          <td>{{y_field.title}} \ {{x_field.title}}</td>
-          {% for x in all_x %}
-            <td>
-              {{x}}
-            </td>
-          {% endfor %}
         </tr>
-      </thead>
-      {% for y in all_y %}
-        <tr>
-          <th>{{y}}</th>
-          {% for x in all_x %}
-            <td>
-              {% for el in analytics_table[y][x] %}
-                 {{  el }}
-                  <br><br><br>
-              {% endfor %}
-            </td>
-          {% endfor %}
-        </tr>
-      {% endfor %}
-      <tr>
-      </tr>
-    </table>
+      </table>
+    {% endif %}
   </div>
 </div>
 

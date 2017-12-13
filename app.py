@@ -211,6 +211,7 @@ def analytics(table=None):
     model = tables[table]()
     data['selected_table'] = table
     data['fields'] = model.fields_no_pk
+    data['inner_fields'] = model.fields_short_resolved
 
     x_field_name = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
     y_field_name = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
@@ -239,7 +240,7 @@ def analytics(table=None):
             analytics_table[y] = {}
         if x not in analytics_table[y]:
             analytics_table[y][x] = []
-        analytics_table[y][x].append({field.title: record[field.qualified_col_name] for field in model.fields_short_resolved})
+        analytics_table[y][x].append({field.qualified_col_name: record[field.qualified_col_name] for field in model.fields_short_resolved})
 
 
 
