@@ -16,7 +16,6 @@
         </select>
       </div>
 
-
       <div class="form-group">
         <label>Y:</label>
         <select name='y_field' class="form-control form-control-sm">
@@ -25,6 +24,17 @@
         {% endfor %}
         </select>
       </div>
+
+      <h4>Показать:</h4>
+      {% for field in fields %}
+        <div class="form-check">
+          <label class="form-check-label">
+            <input name="show_fields" class="form-check-input" type="checkbox" value="{{field.qualified_col_name}}" {% if field.qualified_col_name in show_fields %} checked {% endif %}>
+            {{ field.title }}
+          </label>
+        </div>
+      {% endfor %}
+
       <input type="submit" value="Применить" class="form-control form-control-sm btn btn-sm btn-primary">
     </form>
 
@@ -42,37 +52,39 @@
       <table class="table table-bordered">
         <thead>
           <tr>
+            <th align="left">{{y_field.title}}</th>
             <th align="right">{{x_field.title}}</th>
             {% for x in all_x %}
-              <th rowspan="2">
+              <th>
                 {{x}}
               </th>
             {% endfor %}
           </tr>
-          <tr>
-            <th align="left">{{y_field.title}}</th>
-          </tr>
         </thead>
         {% for y in all_y %}
           <tr>
-            <th>{{y}}</th>
+            <th colspan="2">{{y}}</th>
             {% for x in all_x %}
               <td>
                 {% if analytics_table[y][x] %}
                   <table>
                     <thead>
                       {% for in_field in fields %}
-                        <th>
-                          {{ in_field.title }}
-                        </th>
+                        {% if in_field.resolved_name in show_fields %}
+                          <th>
+                            {{ in_field.title }}
+                          </th>
+                        {% endif %}
                       {% endfor %}
                     </thead>
                     {% for el in analytics_table[y][x] %}
                       <tr>
                         {% for in_field in fields %}
-                          <td>
-                            {{ el[in_field.qualified_col_name] }}
-                          </td>
+                          {% if in_field.resolved_name in show_fields %}
+                            <td>
+                              {{ el[in_field.qualified_col_name] }}
+                            </td>
+                          {% endif %}
                         {% endfor %}
                       </tr>
                     {% endfor %}

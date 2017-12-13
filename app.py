@@ -227,6 +227,13 @@ def analytics(table=None):
     data['x_field_name'] = x_field_name
     data['y_field_name'] = y_field_name
 
+    show_fields = request.args.getlist('show_fields', type=type_checkers.model_field(model))
+
+    if not show_fields:
+        show_fields = [field.resolved_name for field in data['fields'] if field.resolved_name != x_field.resolved_name and field.resolved_name != y_field.resolved_name]
+
+    data['show_fields'] = show_fields
+
     analytics_table = {}
     all_x = set()
     all_y = set()
