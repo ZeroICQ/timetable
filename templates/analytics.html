@@ -4,22 +4,24 @@
 <div class="row">
   <div class="col-sm-12 col-md-3">
     <form>
+      <h4>Поиск</h4>
       {% include "search_widget.html" %}
-
+      <h4>Аналитика</h4>
       <div class="form-group">
         <label>X:</label>
         <select name='x_field' class="form-control form-control-sm">
-          {% for field in fields %}
-            <option {#{% if field.qualified_col_name == search_field %} selected {% endif %}#} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
+          {% for field in analytics_fields %}
+            <option {% if field.qualified_col_name == x_field_name %} selected {% endif %} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
           {% endfor %}
         </select>
       </div>
 
+
       <div class="form-group">
         <label>Y:</label>
         <select name='y_field' class="form-control form-control-sm">
-        {% for field in fields %}
-          <option {#{% if field.qualified_col_name == search_field %} selected {% endif %}#} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
+        {% for field in analytics_fields %}
+          <option {% if field.qualified_col_name == y_field_name %} selected {% endif %} value="{{ field.qualified_col_name }}">{{ field.title }}</option>
         {% endfor %}
         </select>
       </div>
@@ -59,7 +61,7 @@
                 {% if analytics_table[y][x] %}
                   <table>
                     <thead>
-                      {% for in_field in inner_fields %}
+                      {% for in_field in fields %}
                         <th>
                           {{ in_field.title }}
                         </th>
@@ -67,7 +69,7 @@
                     </thead>
                     {% for el in analytics_table[y][x] %}
                       <tr>
-                        {% for in_field in inner_fields %}
+                        {% for in_field in fields %}
                           <td>
                             {{ el[in_field.qualified_col_name] }}
                           </td>

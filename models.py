@@ -136,18 +136,6 @@ class BasicModel(metaclass=BasicModelMetaclass):
         else:
             raise TypeError
 
-    # @property
-    # def fields_unresolved(self):
-    #     if self._fields_unresolved is None:
-    #         self._fields_unresolved = [field for field in self.fields if not (isinstance(field, PKField) or isinstance(field, ForeignKeyField))]
-    #     return self._fields_unresolved
-
-    # @property
-    # def fields_resolved_fks(self):
-    #     if self._fields_short_resolved is None:
-    #         self._fields_short_resolved = self.fields_own + [field.main_field for field in self.fields if isinstance(field, ForeignKeyField)]
-    #     return self._fields_short_resolved
-
     def get_pages(self, fields=None, conditions=None, pagination=None):
         cur = get_cursor()
         sql = SQLCountAll(self)

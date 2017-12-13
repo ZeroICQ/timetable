@@ -6,7 +6,7 @@
 
   <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
   {% for table_uri, table in tables.items() %}
-    <a class="nav-link {% if selected_table is defined and selected_table ==  table_uri %} active {% endif %}" href="{{ url_for('catalog', table=table_uri, page_size=request.args.get('page_size', 0)) }}">
+    <a class="nav-link {% if selected_table is defined and selected_table == table_uri %} active {% endif %}" href="{{ url_for('catalog', table=table_uri, page_size=request.args.get('page_size', 0)) }}">
       {{ table.title }}
     </a>
   {% endfor %}
@@ -23,6 +23,6 @@
     </select>
     <input type="submit" value="Показать" class="form-control form-control-sm btn btn-sm btn-primary">
     </div>
-  <input type="hidden" name="sort" value="{{ query_params['sort_field'] }}">
+  <input type="hidden" name="sort_field" value="{{ query_params['sort_field'] }}">
   <input type="hidden" name="sort_order" value="{{ query_params['sort_order'] }}">
 </form>

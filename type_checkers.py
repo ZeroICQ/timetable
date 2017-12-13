@@ -21,7 +21,7 @@ def sort_order(val):
 
 def model_field(model):
     def check_function(field_name):
-        if field_name not in [field.qualified_col_name for field in model.fields_short_resolved]:
+        if field_name.lower() not in [field.qualified_col_name.lower() for field in model.fields_short_resolved]:
             raise ValueError
         return field_name
     return check_function
@@ -29,7 +29,7 @@ def model_field(model):
 
 def model_field_own(model):
     def check_function(field_name):
-        if field_name not in [field.qualified_col_name for field in model.fields]:
+        if field_name.lower() not in [field.qualified_col_name.lower() for field in model.fields]:
             raise ValueError
         return field_name
     return check_function

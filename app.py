@@ -36,6 +36,16 @@ def get_page_size():
     return choice
 
 
+def get_search_fields(selected_model, data):
+    data['logic_search_operators_list'] = BasicCondition.logic_operators
+    data['compare_search_operators_list'] = BasicCondition.compare_operators
+
+    data['query_params']['logic_operator'] = request.args.getlist('logic_operator', type=type_checkers.logic_operators)
+    data['query_params']['compare_operator'] = request.args.getlist('compare_operator', type=type_checkers.compare_operators)
+
+    data['query_params']['search_field'] = request.args.getlist('search_field', type=type_checkers.model_field(selected_model))
+    data['query_params']['search_val'] = request.args.getlist('search_val')
+
 '''-----------'''
 '''CONTROLLERS'''
 '''-----------'''
@@ -64,7 +74,7 @@ def catalog(table=''):
         return data
 
     selected_model = tables[table]()
-
+    get_search_fields(selected_model, data)
     # PAGINATION
     pagination = (page, page_size)
 
@@ -72,17 +82,6 @@ def catalog(table=''):
 
     data['fields'] = selected_model.fields_short_resolved
     data['pk'] = selected_model.pk
-
-
-    # SEARCH
-    search_fields = request.args.getlist('search_field', type=type_checkers.model_field(selected_model))
-    search_vals = request.args.getlist('search_val')
-
-    logic_operators = request.args.getlist('logic_operator', type=type_checkers.logic_operators)
-    compare_operators = request.args.getlist('compare_operator', type=type_checkers.compare_operators)
-
-    data['logic_search_operators_list'] = BasicCondition.logic_operators
-    data['compare_search_operators_list'] = BasicCondition.compare_operators
 
     # SORTING
     sort_field = request.args.get('sort_field', None, type=type_checkers.model_field(selected_model))
@@ -92,16 +91,12 @@ def catalog(table=''):
     query_params['sort_order'] = sort_order
     data['last_update'] = datetime.now().timestamp()
 
-    if search_fields and search_vals:
-        query_params['search_field'] = search_fields
-        query_params['search_val'] = search_vals
-
-        conditions = create_conditions(search_fields, search_vals, compare_operators, logic_operators)
+    if data['query_params']['search_field'] and data['query_params']['search_val']:
+        conditions = create_conditions(data['query_params']['search_field'], data['query_params']['search_val'],
+                                       data['query_params']['compare_operator'], data['query_params']['logic_operator'])
 
         data['entries'] = selected_model.fetch_all(conditions=conditions, sort_field=sort_field, sort_order=sort_order, pagination=pagination)
-        data['pages'] = selected_model.get_pages(search_fields, conditions, pagination)
-        query_params['logic_operator'] = logic_operators
-        query_params['compare_operator'] = compare_operators
+        data['pages'] = selected_model.get_pages(data['query_params']['search_field'], conditions, pagination)
     else:
         data['entries'] = selected_model.fetch_all(sort_field=sort_field, sort_order=sort_order, pagination=pagination)
         data['pages'] = selected_model.get_pages(pagination=pagination)
@@ -211,9 +206,11 @@ def analytics(table=None):
         return data
 
     model = tables[table]()
+    get_search_fields(model, data)
+
     data['selected_table'] = table
-    data['fields'] = model.fields_no_pk
-    data['inner_fields'] = model.fields_short_resolved
+    data['fields'] = model.fields_short_resolved
+    data['analytics_fields'] = model.fields_no_pk
 
     x_field_name = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
     y_field_name = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
@@ -227,11 +224,17 @@ def analytics(table=None):
     data['x_field'] = x_field
     data['y_field'] = y_field
 
+    data['x_field_name'] = x_field_name
+    data['y_field_name'] = y_field_name
+
     analytics_table = {}
     all_x = set()
     all_y = set()
 
-    records = model.fetch_all(return_fields=model.fields_resolved)
+    conditions = create_conditions(data['query_params']['search_field'], data['query_params']['search_val'],
+                                   data['query_params']['compare_operator'], data['query_params']['logic_operator'])
+
+    records = model.fetch_all(return_fields=model.fields_resolved, conditions=conditions)
 
     for record in records:
         x = record[x_field.resolved_name]
