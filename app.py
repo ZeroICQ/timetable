@@ -198,7 +198,7 @@ def create(table):
 
 @app.route('/analytics/<table>')
 @misc.templated('analytics.html')
-def analytics(table):
+def analytics(table=None):
     data = {}
     data['navigation_controller'] = 'analytics'
 
