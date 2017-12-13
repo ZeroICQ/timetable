@@ -24,21 +24,30 @@
       <input type="submit" value="Применить" class="form-control form-control-sm btn btn-sm btn-primary">
     </form>
 
-
-     <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
-       {% for table_uri, table in tables.items() %}
+    <nav class="nav navbar-collapse flex-column nav-pills" role="tablist" aria-orientation="vertical">
+      {% for table_uri, table in tables.items() %}
          <a class="nav-link {% if selected_table is defined and selected_table == table_uri %} active {% endif %}" href="{{ url_for('analytics', table=table_uri) }}">
            {{ table.title }}
          </a>
       {% endfor %}
-     </nav>
+    </nav>
   </div>
 
   <div class="col col-md-9">
     <table class="table table-bordered">
+      <thead>
+        <tr>
+          <td>{{y_field.title}} \ {{x_field.title}}</td>
+          {% for x in all_x %}
+            <td>
+              {{x}}
+            </td>
+          {% endfor %}
+        </tr>
+      </thead>
       {% for y in all_y %}
         <tr>
-          <td>{{y}}</td>
+          <th>{{y}}</th>
           {% for x in all_x %}
             <td>
               {% for el in analytics_table[y][x] %}
@@ -50,12 +59,6 @@
         </tr>
       {% endfor %}
       <tr>
-        <td></td>
-        {% for x in all_x %}
-          <td>
-            {{x}}
-          </td>
-        {% endfor %}
       </tr>
     </table>
   </div>

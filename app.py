@@ -197,10 +197,13 @@ def create(table):
 
 
 @app.route('/analytics/<table>')
+@app.route('/analytics/')
 @misc.templated('analytics.html')
 def analytics(table=None):
     data = {}
+
     data['navigation_controller'] = 'analytics'
+    data['tables'] = tables
 
     if table not in tables:
         return data
@@ -208,13 +211,18 @@ def analytics(table=None):
     model = tables[table]()
     data['selected_table'] = table
     data['fields'] = model.fields_no_pk
-    data['tables'] = tables
 
-    x_field = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
-    y_field = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
+    x_field_name = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
+    y_field_name = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
 
-    if not (x_field or y_field):
+    if not (x_field_name or y_field_name):
         return data
+
+    x_field = model.get_field_by_col_name(x_field_name)
+    y_field = model.get_field_by_col_name(y_field_name)
+
+    data['x_field'] = x_field
+    data['y_field'] = y_field
 
     analytics_table = {}
     all_x = set()
@@ -223,8 +231,8 @@ def analytics(table=None):
     records = model.fetch_all(return_fields=model.fields_resolved)
 
     for record in records:
-        x = record[model.get_field_by_col_name(x_field).resolved_name]
-        y = record[model.get_field_by_col_name(y_field).resolved_name]
+        x = record[x_field.resolved_name]
+        y = record[y_field.resolved_name]
         all_x.add(x)
         all_y.add(y)
         if y not in analytics_table:
