@@ -40,6 +40,11 @@ def fk_field(field, val, params=None, **kwargs):
 
     options = '<option {} value=\'None\'>None</option>'.format('selected' if val is None else '')
     for choice in choices:
+        try:
+            val = int(val)
+        except (ValueError, TypeError):
+            pass
+
         selected = 'selected' if val == choice[0] else ''
 
         options += ('<option {} value=\'{}\'>{}</option>'.format(selected, Markup.escape(choice[0]), Markup.escape(choice[1])))
