@@ -72,33 +72,37 @@
           <tr class="p-0">
             <th colspan="2">{{y_title}}</th>
             {% for x in all_x %}
-              <td class="sortable cell p-2" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
+              <td class="p-2" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
                   data-y-field="{{y_field.qualified_col_name}}" data-y-val="{{y}}">
-
-                {% set a=x_field.qualified_col_name %}
-
-                <a class="record-action-link btn btn-primary btn-sm mb-1" href="{{ url_for('create', table=selected_table, **{x_field.qualified_col_name:x, y_field.qualified_col_name:y})}}" target="_blank">
-                  Создать
-                </a>
-
-                {% if analytics_table[y][x] %}
-                  {% for el in analytics_table[y][x] %}
-                    <div class="card mb-3 p-0 entry" data-pk="{{el[pk_col_name]}}" data-href="{{ url_for('edit', table=selected_table, pk=el[pk_col_name]) }}">
-                      <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                          {% for in_field in fields %}
-                              <li class="list-group-item" data-field-name="{{in_field.resolved_name}}" {% if in_field.resolved_name in show_fields %} {% else %} style="display:none" {% endif %}>
-                                <div class="title"{% if show_titles is defined and show_titles %} {% else %} style="display:none" {% endif %}>
-                                  <b>{{ in_field.title }}:</b>
-                                </div>
-                                {{ el[in_field.qualified_col_name] }}
-                              </li>
-                          {% endfor %}
-                        </ul>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                  <a class="record-action-link btn btn-primary btn-sm mb-1" href="{{ url_for('create', table=selected_table, **{x_field.qualified_col_name:x, y_field.qualified_col_name:y})}}" target="_blank" style="text-align: center">
+                    Создать
+                  </a>
+                  <button data-status="expand" class="collapse-btn btn btn-dark btn-sm mb-1"><i class="fa fa-compress" aria-hidden="true"></i><span>Свернуть</span></button>
+                </div>
+                <div class="entries-container sortable cell">
+                  {% if analytics_table[y][x] %}
+                    {% for el in analytics_table[y][x] %}
+                      <div class="card mb-3 p-0 entry" data-pk="{{el[pk_col_name]}}">
+                        <div class="card-header py-0">
+                          <button class="btn btn-success btn-sm" data-href="{{ url_for('edit', table=selected_table, pk=el[pk_col_name]) }}">Редактировать</button>
+                        </div>
+                        <div class="card-body p-0">
+                          <ul class="list-group list-group-flush">
+                            {% for in_field in fields %}
+                                <li class="list-group-item" data-field-name="{{in_field.resolved_name}}" {% if in_field.resolved_name in show_fields %} {% else %} style="display:none" {% endif %}>
+                                  <div class="title"{% if show_titles is defined and show_titles %} {% else %} style="display:none" {% endif %}>
+                                    <b>{{ in_field.title }}:</b>
+                                  </div>
+                                  {{ el[in_field.qualified_col_name] }}
+                                </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                  {% endfor %}
-                {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                </div>
               </td>
             {% endfor %}
           </tr>

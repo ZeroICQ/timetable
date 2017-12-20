@@ -43,6 +43,25 @@ $(document).ready(function () {
         $('[data-field-name="'+fieldName+'"]').slideToggle();
     });
 
+    $('button[data-href]').on("click", function() {
+        window.open($(this).data('href'));
+    });
+
+    $('.collapse-btn').click(function() {
+        $(this).parent().siblings('.cell').first().slideToggle('toggle');
+        var status = $(this).data('status');
+        if (status === 'expand') {
+            $(this).data('status', 'collapse');
+            $(this).find('i').removeClass('fa-compress');
+            $(this).find('i').addClass('fa-expand');
+            $(this).find('span').text('Развернуть');
+        } else {
+            $(this).data('status', 'expand');
+            $(this).find('i').removeClass('fa-expand');
+            $(this).find('i').addClass('fa-compress');
+            $(this).find('span').text('Свернуть');
+        }
+    });
 
 });
 </script

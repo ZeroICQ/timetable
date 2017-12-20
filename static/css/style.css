@@ -30,3 +30,7 @@
 .edit_link:hover, .edit_link:link, .edit_link:visited, .edit_link:active {
     text-decoration: none;
 }
+
+.entries-container.sortable.cell {
+    min-height: 50px;
+}
