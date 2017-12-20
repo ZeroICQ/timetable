@@ -54,16 +54,16 @@
           <tr>
             <th align="left">{{y_field.title}}</th>
             <th align="right">{{x_field.title}}</th>
-            {% for x in all_x %}
+            {% for x, x_title in all_x.items() %}
               <th>
-                {{x}}
+                {{x_title}}
               </th>
             {% endfor %}
           </tr>
         </thead>
-        {% for y in all_y %}
+        {% for y, y_title in all_y.items() %}
           <tr>
-            <th colspan="2">{{y}}</th>
+            <th colspan="2">{{y_title}}</th>
             {% for x in all_x %}
               <td>
                 {% if analytics_table[y][x] %}

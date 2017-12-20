@@ -67,6 +67,9 @@ class BasicModel(metaclass=BasicModelMetaclass):
         for field in self.__dict__.values():
             if isinstance(field, BaseField):
                 field.table_name = self.table_name
+                # possible memory leakage
+                if not isinstance(field, ForeignKeyField):
+                    field.target_model = self
 
     def get_field_by_col_name(self, col_name):
         for field in self.fields:

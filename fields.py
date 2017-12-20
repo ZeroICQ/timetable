@@ -1,11 +1,12 @@
 import fields_html
-
+from collections import OrderedDict
 
 class BaseField:
     def __init__(self, title, col_name, table_name=None):
         self.title = title
         self.col_name = col_name
         self.table_name = table_name
+        self.target_model = None
 
     def select_col_raw(self, sql_builder):
         sql_builder.add_field(self.col_name)
@@ -20,6 +21,11 @@ class BaseField:
 
     def get_html(self, value=None, **kwargs):
         return fields_html.string_field(self, value, **kwargs)
+
+    def get_all_values(self):
+        model = self.target_model
+        values = model.fetch_all([self, self], pack=False)
+        return OrderedDict((val[0], val[1]) for val in values)
 
 
 class IntegerField(BaseField):
@@ -45,7 +51,6 @@ class ForeignKeyField(BaseField):
         for f_name, f_title in self.target_fields:
             self.target_model.get_field_by_col_name(f_name).title = f_title
 
-    # !ASK about collisions
     def __getattr__(self, item):
         return getattr(self.target_model, item)
 
@@ -57,6 +62,11 @@ class ForeignKeyField(BaseField):
     @property
     def resolved_name(self):
         return self.target_model.main_field.qualified_col_name
+
+    def get_all_values(self):
+        model = self.target_model
+        values = model.fetch_all([model.pk, model.main_field], pack=False)
+        return OrderedDict((val[0], val[1]) for val in values)
 
 
 class StringField(BaseField):

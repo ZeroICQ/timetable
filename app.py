@@ -230,13 +230,18 @@ def analytics(table=None):
     show_fields = request.args.getlist('show_fields', type=type_checkers.model_field(model))
 
     if not show_fields:
-        show_fields = [field.resolved_name for field in data['fields'] if field.resolved_name != x_field.resolved_name and field.resolved_name != y_field.resolved_name]
+        show_fields = [field.resolved_name for field in data['fields'] if field.resolved_name != x_field.resolved_name
+                       and field.resolved_name != y_field.resolved_name]
 
     data['show_fields'] = show_fields
 
     analytics_table = {}
-    all_x = set()
-    all_y = set()
+
+    all_x = x_field.get_all_values()
+    all_y = y_field.get_all_values()
+
+    for y in all_y:
+        analytics_table[y] = {x:[] for x in all_x}
 
     conditions = create_conditions(data['query_params']['search_field'], data['query_params']['search_val'],
                                    data['query_params']['compare_operator'], data['query_params']['logic_operator'])
@@ -244,15 +249,15 @@ def analytics(table=None):
     records = model.fetch_all(return_fields=model.fields_resolved, conditions=conditions)
 
     for record in records:
-        x = record[x_field.resolved_name]
-        y = record[y_field.resolved_name]
-        all_x.add(x)
-        all_y.add(y)
-        if y not in analytics_table:
-            analytics_table[y] = {}
-        if x not in analytics_table[y]:
-            analytics_table[y][x] = []
-        analytics_table[y][x].append({field.qualified_col_name: record[field.qualified_col_name] for field in model.fields_short_resolved})
+        x = record[x_field.qualified_col_name]
+        y = record[y_field.qualified_col_name]
+        # all_x.add(x)
+        # all_y.add(y)
+        # if y not in analytics_table:
+        #     analytics_table[y] = {}
+        # if x not in analytics_table[y]:
+        #     analytics_table[y][x] = []
+        analytics_table[y][x].append({field.qualified_col_name: record[field.resolved_name] for field in model.fields_short_resolved})
 
     data['analytics_table'] = analytics_table
     data['all_x'] = all_x
