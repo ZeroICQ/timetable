@@ -8,7 +8,11 @@
     <form method="post">
       <div class="form-group">
         {% for field in fields %}
-          {{ field.get_html() }}
+          {% if values[field.qualified_col_name] is defined %}
+            {{ field.get_html(values[field.qualified_col_name]) }}
+          {% else %}
+            {{ field.get_html() }}
+          {% endif %}
         {% endfor %}
       </div>
       <button type="submit" name="action" value="new" class="btn btn-sm btn-success">Создать и продолжить</button>

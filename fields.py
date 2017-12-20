@@ -34,7 +34,7 @@ class IntegerField(BaseField):
 
 
 class PKField(IntegerField):
-    def __init__(self, title='ID', col_name='ID'):
+    def __init__(self, title='ID', col_name='id'):
         super().__init__(title, col_name)
 
     def get_html(self, value=None, **kwargs):

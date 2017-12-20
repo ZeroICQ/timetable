@@ -26,3 +26,7 @@
 .card {
     border: 1px solid rgb(181, 113, 113);
 }
+
+.edit_link:hover, .edit_link:link, .edit_link:visited, .edit_link:active {
+    text-decoration: none;
+}

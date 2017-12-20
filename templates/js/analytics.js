@@ -30,7 +30,8 @@ $(document).ready(function () {
         placeholder: "ui-state-highlight",
         forcePlaceholderSize: true,
         tolerance: "pointer",
-        receive: updateFields
+        receive: updateFields,
+        items: 'div.card'
     });
 
     $('#show_titles').change(function() {
@@ -41,6 +42,7 @@ $(document).ready(function () {
         var fieldName = $(this).attr('value');
         $('[data-field-name="'+fieldName+'"]').slideToggle();
     });
+
 
 });
 </script

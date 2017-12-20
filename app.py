@@ -175,6 +175,14 @@ def create(table):
     fields = model.fields_no_pk
     data['fields'] = fields
 
+    values = {}
+    for field in fields:
+        val = request.args.get(field.qualified_col_name, None)
+        if val is not None:
+            values[field.qualified_col_name] = val
+
+    data['values'] = values
+
     if request.method == 'POST':
         new_fields = {field.qualified_col_name: request.form.get(field.qualified_col_name, None) for field in fields}
         pk = model.insert(new_fields)
@@ -277,7 +285,7 @@ def update(table):
     # ASK! как короче записать?
     values = {}
     for field in fields:
-        val = request.form.get(field.qualified_col_name, None)
+        val = request.form.get(field.qualified_col_name.lower(), None)
         if val is not None:
             values[field.qualified_col_name] = val
 
