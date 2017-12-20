@@ -103,3 +103,8 @@
 
 {% endblock %}
 
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/jquery-ui.min.js')}}"></script>
+{% endblock %}
+
