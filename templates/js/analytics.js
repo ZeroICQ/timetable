@@ -37,5 +37,10 @@ $(document).ready(function () {
         $('.title').slideToggle();
     });
 
+    $('[name="show_fields"]').change(function() {
+        var fieldName = $(this).attr('value');
+        $('[data-field-name="'+fieldName+'"]').slideToggle();
+    });
+
 });
 </script

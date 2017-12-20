@@ -80,14 +80,12 @@
                       <div class="card-body p-0">
                         <ul class="list-group list-group-flush">
                           {% for in_field in fields %}
-                            {% if in_field.resolved_name in show_fields %}
-                              <li class="list-group-item">
+                              <li class="list-group-item" data-field-name="{{in_field.resolved_name}}" {% if in_field.resolved_name in show_fields %} {% else %} style="display:none" {% endif %}>
                                 <div class="title"{% if show_titles is defined and show_titles %} {% else %} style="display:none" {% endif %}>
                                   <b>{{ in_field.title }}:</b>
                                 </div>
                                 {{ el[in_field.qualified_col_name] }}
                               </li>
-                            {% endif %}
                           {% endfor %}
                         </ul>
                       </div>
