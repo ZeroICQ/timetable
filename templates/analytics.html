@@ -65,30 +65,25 @@
           <tr>
             <th colspan="2">{{y_title}}</th>
             {% for x in all_x %}
-              <td>
+              <td class="sortable cell" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
+                  data-y-field="{{y_field.qualified_col_name}}" data-y-val="{{y}}">
                 {% if analytics_table[y][x] %}
-                  <table>
-                    <thead>
-                      {% for in_field in fields %}
-                        {% if in_field.resolved_name in show_fields %}
-                          <th>
-                            {{ in_field.title }}
-                          </th>
-                        {% endif %}
-                      {% endfor %}
-                    </thead>
-                    {% for el in analytics_table[y][x] %}
-                      <tr>
-                        {% for in_field in fields %}
-                          {% if in_field.resolved_name in show_fields %}
-                            <td>
+                  {% for el in analytics_table[y][x] %}
+                    <div class="card mb-2 p-0" data-pk="{{el[pk_col_name]}}">
+                      <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                          {% for in_field in fields %}
+                            <li class="list-group-item">
+                              <div>
+                                <b>{{ in_field.title }}:</b>
+                              </div>
                               {{ el[in_field.qualified_col_name] }}
-                            </td>
-                          {% endif %}
-                        {% endfor %}
-                      </tr>
-                    {% endfor %}
-                  </table>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    </div>
+                  {% endfor %}
                 {% endif %}
               </td>
             {% endfor %}
@@ -106,5 +101,6 @@
 {% block scripts %}
   {{ super() }}
   <script src="{{ url_for('static', filename='js/jquery-ui.min.js')}}"></script>
+  {% include "js/analytics.js" %}
 {% endblock %}
 

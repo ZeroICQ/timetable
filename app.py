@@ -212,6 +212,8 @@ def analytics(table=None):
     data['fields'] = model.fields_short_resolved
     data['analytics_fields'] = model.fields_no_pk
 
+    data['pk_col_name'] = model.pk.qualified_col_name
+
     x_field_name = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
     y_field_name = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
 
@@ -251,18 +253,32 @@ def analytics(table=None):
     for record in records:
         x = record[x_field.qualified_col_name]
         y = record[y_field.qualified_col_name]
-        # all_x.add(x)
-        # all_y.add(y)
-        # if y not in analytics_table:
-        #     analytics_table[y] = {}
-        # if x not in analytics_table[y]:
-        #     analytics_table[y][x] = []
         analytics_table[y][x].append({field.qualified_col_name: record[field.resolved_name] for field in model.fields_short_resolved})
 
     data['analytics_table'] = analytics_table
     data['all_x'] = all_x
     data['all_y'] = all_y
     return data
+
+
+@app.route('/update/<table>', methods=['POST'])
+def update(table):
+    if table not in tables:
+        abort(404)
+
+    model = tables[table]()
+    fields = model.fields
+    # ASK! как короче записать?
+    values = {}
+    for field in fields:
+        val = request.form.get(field.qualified_col_name, None)
+        if val is not None:
+            values[field.qualified_col_name] = val
+
+    pk = request.form.get('pk', type=int)
+
+    pk = model.update(return_fields=[model.pk], new_fields=values, pk_val=pk)
+    return jsonify({'pk': pk})
 
 
 @app.route("/<table>/log/", methods=['GET'])
