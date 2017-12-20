@@ -18,3 +18,11 @@
 .entry {
   cursor: pointer;
 }
+
+#a-table, #a-table th, #a-table td {
+    border: 1px solid black;
+}
+
+.card {
+    border: 1px solid rgb(181, 113, 113);
+}

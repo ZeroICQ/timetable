@@ -26,6 +26,13 @@
       </div>
 
       <h4>Показать:</h4>
+      <div class="form-check">
+        <label class="form-check-label">
+          <input id="show_titles" name="show_titles" class="form-check-input" type="checkbox" {% if show_titles is defined and show_titles %} checked {% endif %}#}>
+          Заголовки
+        </label>
+      </div>
+      <hr>
       {% for field in fields %}
         <div class="form-check">
           <label class="form-check-label">
@@ -49,7 +56,7 @@
 
   <div class="col col-md-9">
     {% if x_field is defined and y_field is defined and x_field and y_field %}
-      <table class="table table-bordered">
+      <table class="table table-bordered p-0" id="a-table">
         <thead>
           <tr>
             <th align="left">{{y_field.title}}</th>
@@ -62,10 +69,10 @@
           </tr>
         </thead>
         {% for y, y_title in all_y.items() %}
-          <tr>
+          <tr class="p-0">
             <th colspan="2">{{y_title}}</th>
             {% for x in all_x %}
-              <td class="sortable cell" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
+              <td class="sortable cell p-2" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
                   data-y-field="{{y_field.qualified_col_name}}" data-y-val="{{y}}">
                 {% if analytics_table[y][x] %}
                   {% for el in analytics_table[y][x] %}
@@ -73,12 +80,14 @@
                       <div class="card-body p-0">
                         <ul class="list-group list-group-flush">
                           {% for in_field in fields %}
-                            <li class="list-group-item">
-                              <div>
-                                <b>{{ in_field.title }}:</b>
-                              </div>
-                              {{ el[in_field.qualified_col_name] }}
-                            </li>
+                            {% if in_field.resolved_name in show_fields %}
+                              <li class="list-group-item">
+                                <div class="title"{% if show_titles is defined and show_titles %} {% else %} style="display:none" {% endif %}>
+                                  <b>{{ in_field.title }}:</b>
+                                </div>
+                                {{ el[in_field.qualified_col_name] }}
+                              </li>
+                            {% endif %}
                           {% endfor %}
                         </ul>
                       </div>

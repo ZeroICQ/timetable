@@ -33,5 +33,9 @@ $(document).ready(function () {
         receive: updateFields
     });
 
+    $('#show_titles').change(function() {
+        $('.title').slideToggle();
+    });
+
 });
 </script
