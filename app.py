@@ -285,7 +285,7 @@ def update(table):
     # ASK! как короче записать?
     values = {}
     for field in fields:
-        val = request.form.get(field.qualified_col_name.lower(), None)
+        val = request.form.get(field.qualified_col_name.lower(), None, type=type_checkers.model_field_own)
         if val is not None:
             values[field.qualified_col_name] = val
 
