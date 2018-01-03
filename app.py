@@ -11,6 +11,7 @@ import jinja_helpers
 from conditions import BasicCondition, create_conditions
 from datetime import datetime
 from collections import OrderedDict
+import conflicts
 
 app = Flask(__name__)
 jinja_helpers.register_helpers(app)
@@ -282,7 +283,6 @@ def update(table):
 
     model = tables[table]()
     fields = model.fields
-    # ASK! как короче записать?
     values = {}
     for field in fields:
         val = request.form.get(field.qualified_col_name.lower(), None, type=type_checkers.model_field_own)
@@ -367,5 +367,20 @@ def record_get(table, pk):
 
     return jsonify(data)
 
+@app.route('/conflicts/', methods=['GET', 'POST'])
+@misc.templated('conflicts.html')
+def conflicts():
+    data = {}
+
+    conflicts_model = models.SchedConflicstModel()
+
+    if request.method == 'POST':
+        action = request.form.get('action', None)
+
+        if action == 'recalc':
+            data['recalc'] = True
+            conflicts_model.full_recalc()
+
+    return data
 
 app.run(debug=True)

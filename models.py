@@ -4,6 +4,7 @@ from fields import BaseField, IntegerField, StringField, PKField, ForeignKeyFiel
 from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, SQLBasicInsert, SQLLogSelect
 from math import ceil
 from conditions import BetweenCondition, BasicCondition, InCondition
+import conflicts
 
 
 def get_db():
@@ -376,6 +377,34 @@ class LogStatusModel(BasicModel):
         return self.name
 
 
+class ConflictsModel(BasicModel):
+    title = 'Тип конфликта'
+    table_name = 'conflicts'
+
+    def __init__(self):
+        super().__init__()
+        self.name = StringField(col_name='name', title='Название')
+
+    @property
+    def main_field(self):
+        return self.name
+
+
+class SchedConflicstModel(BasicModel):
+    title = 'Конфликты'
+    table_name = 'sched_conflicts'
+
+    def __init__(self):
+        super().__init__()
+        self.conflict = ForeignKeyField(title='Конфликт', col_name='conflict_id', target_model_class=ConflictsModel, target_fields=(('name', 'Тип'),))
+        self.sched_item = ForeignKeyField(title='Элемент', col_name='sched_id', target_model_class=SchedItemsModel, target_fields=(('id','ID элемента'),))
+
+    def full_recalc(self):
+        cur = get_cursor()
+        conflicts.recalculate_all(cur, self, ConflictsModel(), SchedItemsModel())
+        cur.transaction.commit()
+
+
 class LogModel(BasicModel):
     title = 'Логи'
     table_name = 'log'
@@ -415,38 +444,19 @@ class LogModel(BasicModel):
         return cur.fetchall()
 
 
-    # TODO: delete
-    # def get_changes(self, date_start, pks, table_name):
-    #     cur = get_cursor()
-    #     sql = SQLLogSelect(target_table=self)
-    #     sql = self.select_all_fields(sql)#there is no pk!! fix in future
-    #     sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='>', val=date_start))
-    #     sql.add_custom_condition(CustomCondition(field_name=self.datetime.col_name, compare_operator='<', val=datetime.now()))
-    #     sql.add_custom_condition(CustomCondition(field_name=self.logged_table_name.col_name,
-    #                                              compare_operator='=', val=table_name))
-    #     group_pk = GroupCondition('AND')
-    #     for pk in pks:
-    #         group_pk.add_condition(CustomCondition(field_name=self.logged_table_pk.col_name,
-    #                                                  val=pk,
-    #                                                  compare_operator='=',
-    #                                                  logic_operator='OR'))
-    #
-    #     sql.add_group_condition(group_pk)
-    #     sql.execute(cur)
-    #     return cur.fetchallmap()
-
-
 all_models = (
-        AudienceModel,
-        GroupsModel,
-        LessonsModel,
-        LessonTypesModel,
-        SchedItemsModel,
-        SubjectsModel,
-        SubjectGroupModel,
-        SubjectTeacherModel,
-        TeachersModel,
-        WeekdaysModel,
-        LogStatusModel,
-        LogModel
+    AudienceModel,
+    GroupsModel,
+    LessonsModel,
+    LessonTypesModel,
+    SchedItemsModel,
+    SubjectsModel,
+    SubjectGroupModel,
+    SubjectTeacherModel,
+    TeachersModel,
+    WeekdaysModel,
+    LogStatusModel,
+    LogModel,
+    ConflictsModel,
+    SchedConflicstModel
 )

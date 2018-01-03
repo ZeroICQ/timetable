@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  {% if recalc is defined %}
+    {{ recalc }}
+  {% endif %}
+  <form method="post">
+    <button type="submit" name="action" value="recalc" class="btn btn-sm btn-danger">Перерассчитать</button>
+  </form>
+{% endblock %}
