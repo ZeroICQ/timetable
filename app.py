@@ -17,9 +17,9 @@ app = Flask(__name__)
 jinja_helpers.register_helpers(app)
 
 #TODO: investigate crashes
-# @app.teardown_appcontext
-# def on_teardown(error):
-#     models.close_db(error)
+@app.teardown_appcontext
+def on_teardown(error):
+    models.close_db(error)
 
 
 tables = OrderedDict({model.title.lower(): model for model in models.all_models})
@@ -285,7 +285,7 @@ def update(table):
     fields = model.fields
     values = {}
     for field in fields:
-        val = request.form.get(field.qualified_col_name.lower(), None, type=type_checkers.model_field_own)
+        val = request.form.get(field.qualified_col_name.lower(), None)
         if val is not None:
             values[field.qualified_col_name] = val
 

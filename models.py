@@ -377,6 +377,16 @@ class LogStatusModel(BasicModel):
         return self.name
 
 
+class ConflictConflict(BasicModel):
+    title = 'Кофликт-Конфликт'
+    table_name = 'conflict_conflict'
+
+    def __init__(self):
+        super().__init__()
+        self.id1 = ForeignKeyField(title='Элемент', col_name='id1', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
+        self.id2 = ForeignKeyField(title='Элемент', col_name='id2', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
+
+
 class ConflictsModel(BasicModel):
     title = 'Тип конфликта'
     table_name = 'conflicts'
@@ -401,7 +411,7 @@ class SchedConflicstModel(BasicModel):
 
     def full_recalc(self):
         cur = get_cursor()
-        conflicts.recalculate_all(cur, self, ConflictsModel(), SchedItemsModel())
+        conflicts.recalculate_all(cur, self, ConflictsModel(), SchedItemsModel(), ConflictConflict())
         cur.transaction.commit()
 
 
