@@ -1,4 +1,5 @@
 import conditions
+import conflicts
 
 def ge_int(lbound):
     def f(val):
@@ -45,3 +46,11 @@ def compare_operators(val):
     if val not in conditions.BasicCondition.compare_operators:
         raise ValueError
     return val
+
+
+def conflict(val):
+    val = val.lower()
+    for conflict in conflicts.all_conflicts:
+        if val == conflict.alias.lower():
+            return conflict
+    raise ValueError

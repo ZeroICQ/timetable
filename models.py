@@ -385,11 +385,12 @@ class ConflictConflict(BasicModel):
         super().__init__()
         self.id1 = ForeignKeyField(title='Элемент', col_name='id1', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
         self.id2 = ForeignKeyField(title='Элемент', col_name='id2', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
+        self.type = ForeignKeyField(title='Тип конфлитка', col_name='type_id', target_model_class=ConflictsModel, target_fields=(('name', 'Типа'),))
 
 
 class ConflictsModel(BasicModel):
     title = 'Тип конфликта'
-    table_name = 'conflicts'
+    table_name = 'conflicts_list'
 
     def __init__(self):
         super().__init__()

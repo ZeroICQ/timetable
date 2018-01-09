@@ -367,9 +367,10 @@ def record_get(table, pk):
 
     return jsonify(data)
 
-@app.route('/conflicts/', methods=['GET', 'POST'])
+@app.route('/conflicts_list/<conflict_type>', methods=['GET', 'POST'])
+@app.route('/conflicts_list', methods=['GET', 'POST'])
 @misc.templated('conflicts.html')
-def conflicts():
+def conflicts_list(conflict_type=None):
     data = {}
 
     conflicts_model = models.SchedConflicstModel()
@@ -380,6 +381,20 @@ def conflicts():
         if action == 'recalc':
             data['recalc'] = True
             conflicts_model.full_recalc()
+
+    if not conflict_type:
+        return data
+
+    conflict_type = conflict_type.lower()
+
+    conflict = None
+    for con in conflicts.all_conflicts:
+        if conflict_type == con.alias.lower():
+            conflict = con
+
+    if not conflict:
+        return data
+
 
     return data
 
