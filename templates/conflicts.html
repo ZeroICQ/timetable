@@ -16,7 +16,7 @@
     </li>
   </ul>
 
-  <div class="card-group">
+  <div class="card-deck">
   {% for entry in conflicts_entries %}
     <a href="{{ url_for('conflict_view', pk=entry[sched_conflicts_model.pk.qualified_col_name])}}">
       <div class="card border-primary mr-2">

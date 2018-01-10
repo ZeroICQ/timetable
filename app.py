@@ -440,9 +440,15 @@ def conflict_view(pk):
 
     conflicting_items = sched_model.fetch_by_pks(related_pks, sched_model.fields_short_resolved)
 
+    # many items UI debug
+    # conflicting_items.extend(conflicting_items)
+
     data['conflicting_items'] = conflicting_items
-    data['conflicting_fields'] = conflicts.all_conflicts[type].compare_fields
+    data['conflicting_fields'] = {f.resolved_name:1 for f in conflicts.all_conflicts[type-1].compare_fields}
     data['item_fields'] = sched_model.fields_short_resolved
+    data['pk_col_name'] = sched_model.pk.qualified_col_name
+    data['sched_table_name'] = sched_model.title.lower()
+    data['conflict_title'] = conflicts.all_conflicts[type-1].title
 
     return data
 
