@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <div class="card-group">
+  {% for item in conflicting_items %}
+    <div class="card border-primary mr-2">
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {% for field in item_fields %}
+            <li class="list-group-item">
+              <div class="title">
+                <b>{{field.title}}:</b>
+              </div>
+              {{ item[field.resolved_name] }}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+  {% endfor %}
+  </div>
+
+  {% for item in conflicting_items %}
+    {{ item }}
+  <br>
+  <br>
+  {% endfor %}
+{% endblock %}

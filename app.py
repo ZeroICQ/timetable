@@ -417,4 +417,33 @@ def conflicts_list(conflict_type=None):
 
     return data
 
+
+@app.route('/conflict_view/<int:pk>', methods=['GET'])
+@misc.templated('conflict_view.html')
+def conflict_view(pk):
+    data = {}
+    sched_model = models.SchedItemsModel()
+    sched_conflicts_model = models.SchedConflicstModel()
+
+    main_conflict = sched_conflicts_model.fetch_by_pk(pk, fields=[sched_conflicts_model.con_group, sched_conflicts_model.conflict])
+    group_key = main_conflict[sched_conflicts_model.con_group.qualified_col_name]
+    type = main_conflict[sched_conflicts_model.conflict.qualified_col_name]
+
+    related_conflicts = sched_conflicts_model.fetch_all(
+        [sched_conflicts_model.sched_item],
+        [BasicCondition(sched_conflicts_model.con_group.qualified_col_name, group_key, '='),
+         BasicCondition(sched_conflicts_model.conflict.qualified_col_name, type, '=')],
+        pack=False
+    )
+
+    related_pks = [res[0] for res in related_conflicts]
+
+    conflicting_items = sched_model.fetch_by_pks(related_pks, sched_model.fields_short_resolved)
+
+    data['conflicting_items'] = conflicting_items
+    data['conflicting_fields'] = conflicts.all_conflicts[type].compare_fields
+    data['item_fields'] = sched_model.fields_short_resolved
+
+    return data
+
 app.run(debug=True)

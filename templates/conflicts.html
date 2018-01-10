@@ -16,13 +16,10 @@
     </li>
   </ul>
 
-  {% if recalc is defined %}
-    <!--{{ recalc }}-->
-  {% endif %}
-
+  <div class="card-group">
   {% for entry in conflicts_entries %}
-    <a href="#">
-      <div class="card border-primary mb-3" data-pk="">
+    <a href="{{ url_for('conflict_view', pk=entry[sched_conflicts_model.pk.qualified_col_name])}}">
+      <div class="card border-primary mr-2">
         <div class="card-body">
           <ul class="list-group list-group-flush">
             {% for cfield in conflicting_fields %}
@@ -38,7 +35,7 @@
       </div>
     </a>
   {% endfor %}
-
+  </div>
 
   {% for entry in conflicts_entries %}
     {{entry}}
