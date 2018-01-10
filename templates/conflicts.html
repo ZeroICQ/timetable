@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 
 {% block body %}
-
   <ul class="nav nav-tabs">
     {% for conflict in conflict_types %}
       <li class="nav-item">
@@ -16,10 +15,10 @@
     </li>
   </ul>
 
-  <div class="card-deck">
+  <div class="card-deck mt-2">
   {% for entry in conflicts_entries %}
     <a href="{{ url_for('conflict_view', pk=entry[sched_conflicts_model.pk.qualified_col_name])}}">
-      <div class="card border-primary mr-2">
+      <div class="card border-primary mr-1 ml-1">
         <div class="card-body">
           <ul class="list-group list-group-flush">
             {% for cfield in conflicting_fields %}
@@ -36,10 +35,5 @@
     </a>
   {% endfor %}
   </div>
-
-  {% for entry in conflicts_entries %}
-    {{entry}}
-    <br>
-  {% endfor %}
 
 {% endblock %}

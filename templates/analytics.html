@@ -74,7 +74,7 @@
             {% for x in all_x %}
               <td class="p-2" data-x-field="{{x_field.qualified_col_name}}" data-x-val="{{x}}"
                   data-y-field="{{y_field.qualified_col_name}}" data-y-val="{{y}}">
-                <div class="btn-group" role="group" aria-label="Basic example">
+                <div class="btn-group" role="group">
                   <a class="record-action-link btn btn-primary btn-sm mb-1" href="{{ url_for('create', table=selected_table, **{x_field.qualified_col_name:x, y_field.qualified_col_name:y})}}" target="_blank" style="text-align: center">
                     Создать
                   </a>
@@ -85,7 +85,12 @@
                     {% for el in analytics_table[y][x] %}
                       <div class="card mb-3 p-0 entry" data-pk="{{el[pk_col_name]}}">
                         <div class="card-header py-0">
-                          <button class="btn btn-success btn-sm" data-href="{{ url_for('edit', table=selected_table, pk=el[pk_col_name]) }}">Редактировать</button>
+                          <div class="btn-group">
+                            <button class="btn btn-success btn-sm" data-href="{{ url_for('edit', table=selected_table, pk=el[pk_col_name]) }}">Редактировать</button>
+                            {% if el[pk_col_name] in conflicts %}
+                              <div class="conflict-status text-danger"><a class="btn btn-danger" href="#"><i class="fa fa-exclamation-triangle" style="font: 12rem;"></i></a></div>
+                            {% endif %}
+                          </div>
                         </div>
                         <div class="card-body p-0">
                           <ul class="list-group list-group-flush">

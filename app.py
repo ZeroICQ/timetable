@@ -211,10 +211,20 @@ def analytics(table=None):
     data['navigation_controller'] = 'analytics'
     data['tables'] = tables
 
+
     if table not in tables:
         return data
 
     model = tables[table]()
+
+    conflicts = {}
+
+    if model.table_name == models.SchedItemsModel().table_name:
+        sched_conflicts_model = models.SchedConflicstModel()
+        all_conflicts = sched_conflicts_model.fetch_all([sched_conflicts_model.sched_item],pack=False)
+        for conflict in all_conflicts:
+            conflicts[conflict[0]] = 1
+
     get_search_fields(model, data)
 
     data['selected_table'] = table
@@ -273,6 +283,8 @@ def analytics(table=None):
     data['analytics_table'] = analytics_table
     data['all_x'] = all_x
     data['all_y'] = all_y
+
+    data['conflicts'] = conflicts
     return data
 
 
