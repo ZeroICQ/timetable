@@ -464,4 +464,23 @@ def conflict_view(pk):
 
     return data
 
+
+@app.route('/view_conflicts/<int:pk>', methods=['GET'])
+@misc.templated('view_conflicts.html')
+def view_conflicts(pk):
+    data = {}
+    sched_conflicts_model = models.SchedConflicstModel()
+
+    conflicts_members = sched_conflicts_model.fetch_all(
+        [sched_conflicts_model.pk, sched_conflicts_model.conflict],
+        [BasicCondition(sched_conflicts_model.sched_item.qualified_col_name, pk, '=')]
+    )
+
+    data['conflicts_members'] = conflicts_members
+    data['all_conflicts'] = conflicts.all_conflicts
+    data['sched_conflicts_model'] = sched_conflicts_model
+
+    return data
+
+
 app.run(debug=True)
