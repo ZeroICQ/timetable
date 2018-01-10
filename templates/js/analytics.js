@@ -20,6 +20,9 @@ $(document).ready(function () {
             error: function() {
                 ui.sender.sortable("cancel");
             },
+            success : function(data) {
+
+            },
         });
 
     };

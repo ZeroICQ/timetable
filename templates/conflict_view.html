@@ -6,7 +6,7 @@
   {% for item in conflicting_items %}
     <div class="card border-primary ml-1 mr-1 mb-2" style="min-width: 15rem;">
       <div class="card-header py-0 text-center" >
-        <a class="btn btn-success btn-sm" href="{{ url_for('edit', table=sched_table_name, pk=item[pk_col_name]) }}">Редактировать</a>
+        <a class="btn btn-success btn-sm" href="{{ url_for('edit', table=sched_table_name, pk=item[pk_col_name]) }}" target="_blank">Редактировать</a>
       </div>
       <div class="card-body">
         <ul class="list-group list-group-flush" >
@@ -21,7 +21,6 @@
         </ul>
       </div>
     </div>
-
   {% endfor %}
   </div>
 {% endblock %}

@@ -5,6 +5,7 @@ import conditions
 
 class BaseConflict:
     title = 'Название конфликта'
+    type = -1
 
     def __init__(self):
         super().__init__()
@@ -21,7 +22,7 @@ class BaseConflict:
             }
             sched_conflict_model.insert(new_entry)
 
-    def full_recalculate(self, data, sched_model, sched_conflicts_model, type):
+    def full_recalculate(self, data, sched_model, sched_conflicts_model):
         pk = sched_model.pk.qualified_col_name
         used = set()
 
@@ -44,7 +45,7 @@ class BaseConflict:
                     conflicting_entries.append(suspect[pk])
 
             if len(conflicting_entries) > 1:
-                self.fill_conflict_db(conflicting_entries, type, sched_conflicts_model, cur_group)
+                self.fill_conflict_db(conflicting_entries, self.type, sched_conflicts_model, cur_group)
                 cur_group += 1
 
     '''return true if conflict exists'''
@@ -62,6 +63,7 @@ class BaseConflict:
 class AudienceOverlap(BaseConflict):
     title = 'Совпадение аудиторий'
     alias = 'audience_overlap'
+    type = 1
 
     def __init__(self, sched_model):
         super().__init__()
@@ -73,13 +75,10 @@ class AudienceOverlap(BaseConflict):
         )
 
 
-    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=1):
-        super().full_recalculate(data, sched_model, sched_conflicts_model, type)
-
-
 class TeacherFracture(BaseConflict):
     title = 'Разрыв преподавателя'
     alias = 'teacher_fracture'
+    type = 2
 
     def __init__(self, sched_model):
         super().__init__()
@@ -89,12 +88,23 @@ class TeacherFracture(BaseConflict):
             sched_model.teacher
         )
 
-    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=2):
 
-        super().full_recalculate(data, sched_model, sched_conflicts_model, type)
+class GroupFracture(BaseConflict):
+    title = 'Разрыв группы'
+    alias = 'group_fracture'
+    type = 3
+
+    def __init__(self, sched_model):
+        super().__init__()
+        self.compare_fields = (
+            sched_model.weekday,
+            sched_model.lesson,
+            sched_model.group
+        )
 
 
 all_conflicts = None
+
 
 def initialize(sched_model):
     global  all_conflicts
@@ -102,6 +112,7 @@ def initialize(sched_model):
     all_conflicts = (
         AudienceOverlap(sched_model),
         TeacherFracture(sched_model),
+        GroupFracture(sched_model)
     )
 
 

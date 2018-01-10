@@ -294,8 +294,10 @@ def update(table):
         abort(404)
 
     model = tables[table]()
+
     fields = model.fields
     values = {}
+    
     for field in fields:
         val = request.form.get(field.qualified_col_name.lower(), None)
         if val is not None:
@@ -304,7 +306,12 @@ def update(table):
     pk = request.form.get('pk', type=int)
 
     pk = model.update(return_fields=[model.pk], new_fields=values, pk_val=pk)
-    return jsonify({'pk': pk})
+    data = {'pk': pk}
+
+    if model.table_name == models.SchedItemsModel.table_name:
+        pass
+
+    return jsonify(data)
 
 
 @app.route("/<table>/log/", methods=['GET'])

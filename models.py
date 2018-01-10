@@ -65,6 +65,9 @@ class BasicModel(metaclass=BasicModelMetaclass):
     def _after_init_(self):
         self.resolve_foreign_keys()
 
+    def after_change_listener(self):
+        pass
+
     def resolve_foreign_keys(self):
         for field in self.__dict__.values():
             if isinstance(field, BaseField):
@@ -202,6 +205,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self.log_action(cur, 'modified', pk_val)
 
         cur.transaction.commit()
+        self.after_change_listener()
         return self.pack_values(return_fields, result_fields)
 
     def delete_by_pk(self, pk_val, return_fields=None):
@@ -215,6 +219,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
             self.log_action(cur, 'deleted', pk_val)
 
         cur.transaction.commit()
+        self.after_change_listener()
         return self.pack_values(return_fields, result_fields)
 
     def insert(self, new_fields):
@@ -223,6 +228,7 @@ class BasicModel(metaclass=BasicModelMetaclass):
         sql.execute(cur)
         pk = cur.fetchone()[0]
         cur.transaction.commit()
+        self.after_change_listener()
         return pk
 
     def log_action(self, cursor, action, pk):
@@ -364,6 +370,10 @@ class SchedItemsModel(BasicModel):
         self.type = ForeignKeyField(title='Типы пары', col_name='type_id', target_model_class=LessonTypesModel, target_fields=(('name', 'Тип'),))
         self.weekday = ForeignKeyField(title='День недели', col_name='weekday_id', target_model_class=WeekdaysModel, target_fields=(('name', 'День недели'),))
 
+    def after_change_listener(self):
+        super().after_change_listener()
+        SchedConflicstModel().full_recalc()
+
 
 class LogStatusModel(BasicModel):
     title = 'Статус записи'
@@ -398,7 +408,7 @@ class SchedConflicstModel(BasicModel):
     def __init__(self):
         super().__init__()
         self.conflict = ForeignKeyField(title='Конфликт', col_name='conflict_id', target_model_class=ConflictsModel, target_fields=(('name', 'Тип'),))
-        self.sched_item = ForeignKeyField(title='Элемент', col_name='sched_id', target_model_class=SchedItemsModel, target_fields=(('id','ID элемента'),))
+        self.sched_item = ForeignKeyField(title='Элемент', col_name='sched_id', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
         self.con_group = IntegerField(title='Группа кофликта', col_name='con_group')
 
     def full_recalc(self):
