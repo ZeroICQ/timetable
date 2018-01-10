@@ -14,3 +14,12 @@ class MaxWrapper(BasicWrapper):
     @property
     def qualified_col_name(self):
         return 'max({})'.format(self.field.qualified_col_name)
+
+
+class MinWrapper(BasicWrapper):
+    def __init__(self, field):
+        super().__init__(field)
+
+    @property
+    def qualified_col_name(self):
+        return 'min({})'.format(self.field.qualified_col_name)

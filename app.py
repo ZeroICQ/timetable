@@ -223,7 +223,7 @@ def analytics(table=None):
 
     data['pk_col_name'] = model.pk.qualified_col_name
 
-    data['show_titles'] = request.args.get('show_titles', None);
+    data['show_titles'] = request.args.get('show_titles', None)
 
     x_field_name = request.args.get('x_field', None, type=type_checkers.model_field_own(model))
     y_field_name = request.args.get('y_field', None, type=type_checkers.model_field_own(model))
@@ -367,35 +367,45 @@ def record_get(table, pk):
 
     return jsonify(data)
 
+
 @app.route('/conflicts_list/<conflict_type>', methods=['GET', 'POST'])
 @app.route('/conflicts_list', methods=['GET', 'POST'])
 @misc.templated('conflicts.html')
 def conflicts_list(conflict_type=None):
-    data = {}
+    data = {'conflict_types': conflicts.all_conflicts}
 
-    conflicts_model = models.SchedConflicstModel()
+    sched_conflicts_model = models.SchedConflicstModel()
 
     if request.method == 'POST':
         action = request.form.get('action', None)
 
         if action == 'recalc':
             data['recalc'] = True
-            conflicts_model.full_recalc()
+            sched_conflicts_model.full_recalc()
 
     if not conflict_type:
         return data
 
     conflict_type = conflict_type.lower()
 
-    conflict = None
-    for con in conflicts.all_conflicts:
+    selected_conflict = None
+    selected_conflict_pk = None
+    for idx, con in enumerate(conflicts.all_conflicts):
         if conflict_type == con.alias.lower():
-            conflict = con
+            selected_conflict = con
+            selected_conflict_pk = idx + 1
 
-    if not conflict:
+    if not selected_conflict:
         return data
 
+    data['selected_conflict'] = selected_conflict
 
+    conditions = (BasicCondition(sched_conflicts_model.conflict.qualified_col_name, selected_conflict_pk, '='))
+
+    # conflicts_entries = sched_conflicts_model.fetch_all(sched_conflicts_model.fields, conditions)
+
+    conflicts_entries = sched_conflicts_model.fetch_conflicts(selected_conflict_pk)
+    data['conflicts_entries'] = conflicts_entries
     return data
 
 app.run(debug=True)

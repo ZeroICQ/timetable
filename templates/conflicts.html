@@ -1,10 +1,28 @@
 {% extends "layout.html" %}
 
 {% block body %}
+
+  <ul class="nav nav-tabs">
+    {% for conflict in conflict_types %}
+      <li class="nav-item">
+        <a class="nav-link {% if selected_conflict is defined and selected_conflict.alias == conflict.alias %} active {% endif %}"
+           href="{{ url_for('conflicts_list', conflict_type=conflict.alias) }}">{{ conflict.title }}</a>
+      </li>
+    {% endfor %}
+    <li class="nav-item">
+        <form method="post" class="nav-link">
+          <button type="submit" name="action" value="recalc" class="btn btn-sm btn-danger">Пересчитать</button>
+        </form>
+    </li>
+  </ul>
+
   {% if recalc is defined %}
-    {{ recalc }}
+    <!--{{ recalc }}-->
   {% endif %}
-  <form method="post">
-    <button type="submit" name="action" value="recalc" class="btn btn-sm btn-danger">Пересчитать</button>
-  </form>
+
+  {% for entry in conflicts_entries %}
+    {{entry}}
+    <br>
+  {% endfor %}
+
 {% endblock %}

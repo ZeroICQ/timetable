@@ -206,9 +206,10 @@ class SQLCountAll(SQLBasicSelect):
 
 
 class SQLSelect(SQLBasicSelect):
-    def __init__(self, target_table, fields, pagination=None, rows=None):
+    def __init__(self, target_table, fields, pagination=None, rows=None, group_by_field=None):
         super().__init__(target_table, fields, rows=rows)
         self.pagination = pagination
+        self.group_by_field = group_by_field
 
         if self.pagination:
             page = self.pagination[0]
@@ -240,11 +241,19 @@ class SQLSelect(SQLBasicSelect):
         return query
 
     @property
+    def group_by_query(self):
+        query = ''
+        if self.group_by_field:
+            query += 'GROUP BY {0}'.format(self.group_by_field.qualified_col_name)
+        return query
+
+    @property
     def query(self):
         compiled_query = super().query
         compiled_query += self.sort_query
         compiled_query += self.offset_query
         compiled_query += self.rows_query
+        compiled_query += self.group_by_query
         return compiled_query
 
 

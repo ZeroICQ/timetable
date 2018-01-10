@@ -5,6 +5,7 @@ from sqlbuilder import SQLSelect, SQLCountAll, SQLBasicUpdate, SQLBasicDelete, S
 from math import ceil
 from conditions import BetweenCondition, BasicCondition, InCondition
 import conflicts
+from fields_wrappers import MinWrapper
 
 
 def get_db():
@@ -377,17 +378,6 @@ class LogStatusModel(BasicModel):
         return self.name
 
 
-class ConflictConflict(BasicModel):
-    title = 'Кофликт-Конфликт'
-    table_name = 'conflict_conflict'
-
-    def __init__(self):
-        super().__init__()
-        self.id1 = ForeignKeyField(title='Элемент', col_name='id1', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
-        self.id2 = ForeignKeyField(title='Элемент', col_name='id2', target_model_class=SchedItemsModel, target_fields=(('id', 'ID элемента'),))
-        self.type = ForeignKeyField(title='Тип конфлитка', col_name='type_id', target_model_class=ConflictsModel, target_fields=(('name', 'Типа'),))
-
-
 class ConflictsModel(BasicModel):
     title = 'Тип конфликта'
     table_name = 'conflicts_list'
@@ -409,11 +399,27 @@ class SchedConflicstModel(BasicModel):
         super().__init__()
         self.conflict = ForeignKeyField(title='Конфликт', col_name='conflict_id', target_model_class=ConflictsModel, target_fields=(('name', 'Тип'),))
         self.sched_item = ForeignKeyField(title='Элемент', col_name='sched_id', target_model_class=SchedItemsModel, target_fields=(('id','ID элемента'),))
+        self.con_group = IntegerField(title='Группа кофликта', col_name='con_group')
 
     def full_recalc(self):
         cur = get_cursor()
-        conflicts.recalculate_all(cur, self, ConflictsModel(), SchedItemsModel(), ConflictConflict())
+        conflicts.recalculate_all(cur, self, ConflictsModel(), SchedItemsModel())
         cur.transaction.commit()
+
+    def fetch_conflicts(self, type):
+        cur = get_cursor()
+
+        return_fields = [
+            MinWrapper(self.pk),
+            MinWrapper(self.sched_item),
+            self.con_group
+        ]
+
+        sql = SQLSelect(self, return_fields, group_by_field=self.con_group)
+        sql.add_conditions(BasicCondition(self.conflict.qualified_col_name, type, '='))
+        sql.execute(cur)
+
+        return self.pack_values(return_fields, cur.fetchall())
 
 
 class LogModel(BasicModel):
