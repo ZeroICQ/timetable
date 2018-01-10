@@ -6,6 +6,10 @@ import conditions
 class BaseConflict:
     title = 'Название конфликта'
 
+    def __init__(self):
+        super().__init__()
+        self.compare_fields = None
+
     def fill_conflict_db(self, conflicts, type, sched_conflict_model, group):
         # pk = sched_conflict_model.pk.qualified_col_name
 
@@ -45,27 +49,45 @@ class BaseConflict:
 
     '''return true if conflict exists'''
     def compare(self, entry, suspect, sched_model):
-        pass
+        if not self.compare_fields:
+            return False
+
+        for field in self.compare_fields:
+            if entry[field.qualified_col_name] != suspect[field.qualified_col_name]:
+                return False
+
+        return True
 
 
 class AudienceOverlap(BaseConflict):
     title = 'Совпадение аудиторий'
     alias = 'audience_overlap'
 
-    def __init__(self):
-        super().__init__()
-
     def full_recalculate(self, data, sched_model, sched_conflicts_model, type=1):
+        self.compare_fields = (
+            sched_model.weekday,
+            sched_model.lesson,
+            sched_model.audience
+        )
         super().full_recalculate(data, sched_model, sched_conflicts_model, type)
 
-    def compare(self, entry, suspect, sched_model):
-        return (entry[sched_model.weekday.qualified_col_name] == suspect[sched_model.weekday.qualified_col_name] and
-                entry[sched_model.lesson.qualified_col_name] == suspect[sched_model.lesson.qualified_col_name] and
-                entry[sched_model.audience.qualified_col_name] == suspect[sched_model.audience.qualified_col_name])
+
+class TeacherFracture(BaseConflict):
+    title = 'Разрыв преподавателя'
+    alias = 'teacher_fracture'
+
+    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=2):
+        self.compare_fields = (
+            sched_model.weekday,
+            sched_model.lesson,
+            sched_model.teacher
+        )
+        super().full_recalculate(data, sched_model, sched_conflicts_model, type)
 
 
 all_conflicts = (
     AudienceOverlap(),
+    TeacherFracture(),
 )
 
 

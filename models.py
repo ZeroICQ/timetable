@@ -380,7 +380,7 @@ class LogStatusModel(BasicModel):
 
 class ConflictsModel(BasicModel):
     title = 'Тип конфликта'
-    table_name = 'conflicts_list'
+    table_name = 'conflicts'
 
     def __init__(self):
         super().__init__()
@@ -419,6 +419,12 @@ class SchedConflicstModel(BasicModel):
         sql.add_conditions(BasicCondition(self.conflict.qualified_col_name, type, '='))
         sql.execute(cur)
 
+        #dirty hack
+        return_fields = [
+            self.pk,
+            self.sched_item,
+            self.con_group
+        ]
         return self.pack_values(return_fields, cur.fetchall())
 
 
