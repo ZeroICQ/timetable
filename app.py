@@ -376,6 +376,8 @@ def conflicts_list(conflict_type=None):
 
     sched_conflicts_model = models.SchedConflicstModel()
 
+    data['sched_conflicts_model'] = sched_conflicts_model
+
     if request.method == 'POST':
         action = request.form.get('action', None)
 
@@ -387,9 +389,9 @@ def conflicts_list(conflict_type=None):
         return data
 
     conflict_type = conflict_type.lower()
-
     selected_conflict = None
     selected_conflict_pk = None
+
     for idx, con in enumerate(conflicts.all_conflicts):
         if conflict_type == con.alias.lower():
             selected_conflict = con
@@ -399,13 +401,20 @@ def conflicts_list(conflict_type=None):
         return data
 
     data['selected_conflict'] = selected_conflict
-
-    conditions = (BasicCondition(sched_conflicts_model.conflict.qualified_col_name, selected_conflict_pk, '='))
-
-    # conflicts_entries = sched_conflicts_model.fetch_all(sched_conflicts_model.fields, conditions)
-
     conflicts_entries = sched_conflicts_model.fetch_conflicts(selected_conflict_pk)
+    data['conflicting_fields'] = selected_conflict.compare_fields
+    sched_model = models.SchedItemsModel()
+    conflicting_values = {}
+
+    sched_values = sched_model.fetch_by_pks([entry[sched_conflicts_model.sched_item.qualified_col_name] for entry in conflicts_entries],
+        [field.target_model.main_field for field in selected_conflict.compare_fields] + [sched_model.pk])
+
+    for sched in sched_values:
+        conflicting_values[sched[sched_model.pk.qualified_col_name]] = sched
+
     data['conflicts_entries'] = conflicts_entries
+    data['conflicting_values'] = conflicting_values
+
     return data
 
 app.run(debug=True)

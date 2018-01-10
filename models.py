@@ -483,3 +483,5 @@ all_models = (
     ConflictsModel,
     SchedConflicstModel
 )
+
+conflicts.initialize(SchedItemsModel())

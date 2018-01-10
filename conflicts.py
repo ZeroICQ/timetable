@@ -63,12 +63,17 @@ class AudienceOverlap(BaseConflict):
     title = 'Совпадение аудиторий'
     alias = 'audience_overlap'
 
-    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=1):
+    def __init__(self, sched_model):
+        super().__init__()
+
         self.compare_fields = (
             sched_model.weekday,
             sched_model.lesson,
             sched_model.audience
         )
+
+
+    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=1):
         super().full_recalculate(data, sched_model, sched_conflicts_model, type)
 
 
@@ -76,19 +81,28 @@ class TeacherFracture(BaseConflict):
     title = 'Разрыв преподавателя'
     alias = 'teacher_fracture'
 
-    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=2):
+    def __init__(self, sched_model):
+        super().__init__()
         self.compare_fields = (
             sched_model.weekday,
             sched_model.lesson,
             sched_model.teacher
         )
+
+    def full_recalculate(self, data, sched_model, sched_conflicts_model, type=2):
+
         super().full_recalculate(data, sched_model, sched_conflicts_model, type)
 
 
-all_conflicts = (
-    AudienceOverlap(),
-    TeacherFracture(),
-)
+all_conflicts = None
+
+def initialize(sched_model):
+    global  all_conflicts
+
+    all_conflicts = (
+        AudienceOverlap(sched_model),
+        TeacherFracture(sched_model),
+    )
 
 
 def recalculate_all(cur, sched_conflicts_model, conflicts_model, sched_model):

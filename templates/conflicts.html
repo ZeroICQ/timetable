@@ -21,6 +21,26 @@
   {% endif %}
 
   {% for entry in conflicts_entries %}
+    <a href="#">
+      <div class="card border-primary mb-3" data-pk="">
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for cfield in conflicting_fields %}
+                <li class="list-group-item">
+                  <div class="title">
+                    <b>{{ cfield.title }}:</b>
+                  </div>
+                  {{ conflicting_values[entry[sched_conflicts_model.sched_item.qualified_col_name]][cfield.resolved_name] }}
+                </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </a>
+  {% endfor %}
+
+
+  {% for entry in conflicts_entries %}
     {{entry}}
     <br>
   {% endfor %}
