@@ -21,7 +21,11 @@ $(document).ready(function () {
                 ui.sender.sortable("cancel");
             },
             success : function(data) {
-
+                if (data.hasConflict !== undefined) {
+                    ui.item.find('.conflict-status').show();
+                } else {
+                    ui.item.find('.conflict-status').hide();
+                }
             },
         });
 

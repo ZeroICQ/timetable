@@ -217,13 +217,13 @@ def analytics(table=None):
 
     model = tables[table]()
 
-    conflicts = {}
+    conflicts_members = {}
 
     if model.table_name == models.SchedItemsModel().table_name:
         sched_conflicts_model = models.SchedConflicstModel()
-        all_conflicts = sched_conflicts_model.fetch_all([sched_conflicts_model.sched_item],pack=False)
+        all_conflicts = sched_conflicts_model.fetch_all([sched_conflicts_model.sched_item], pack=False)
         for conflict in all_conflicts:
-            conflicts[conflict[0]] = 1
+            conflicts_members[conflict[0]] = 1
 
     get_search_fields(model, data)
 
@@ -284,7 +284,7 @@ def analytics(table=None):
     data['all_x'] = all_x
     data['all_y'] = all_y
 
-    data['conflicts'] = conflicts
+    data['conflicts'] = conflicts_members
     return data
 
 
@@ -297,7 +297,7 @@ def update(table):
 
     fields = model.fields
     values = {}
-    
+
     for field in fields:
         val = request.form.get(field.qualified_col_name.lower(), None)
         if val is not None:
@@ -309,7 +309,14 @@ def update(table):
     data = {'pk': pk}
 
     if model.table_name == models.SchedItemsModel.table_name:
-        pass
+        sched_conflicts_model = models.SchedConflicstModel()
+
+        conflicts_members = sched_conflicts_model.fetch_all(
+            [sched_conflicts_model.pk],
+            [BasicCondition(sched_conflicts_model.sched_item.qualified_col_name, pk[model.pk.qualified_col_name], '=')]
+        )
+        if len(conflicts_members):
+            data['hasConflict'] = True
 
     return jsonify(data)
 
@@ -346,6 +353,7 @@ def get_log(table):
     data['values'] = dict(zip(updating_pks, values))
     data['last_update'] = datetime.now().timestamp()
     data['statuses'] = statuses
+
     return jsonify(data)
 
 

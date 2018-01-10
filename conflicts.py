@@ -103,6 +103,24 @@ class GroupFracture(BaseConflict):
         )
 
 
+class PossibleDuplicates(BaseConflict):
+    title = 'Возможные дубликаты'
+    alias = 'possible_duplicates'
+    type = 4
+
+    def __init__(self, sched_model):
+        super().__init__()
+        self.compare_fields = (
+            sched_model.lesson,
+            sched_model.subject,
+            sched_model.audience,
+            sched_model.group,
+            sched_model.teacher,
+            sched_model.type,
+            sched_model.weekday,
+        )
+
+
 all_conflicts = None
 
 
@@ -112,7 +130,8 @@ def initialize(sched_model):
     all_conflicts = (
         AudienceOverlap(sched_model),
         TeacherFracture(sched_model),
-        GroupFracture(sched_model)
+        GroupFracture(sched_model),
+        PossibleDuplicates(sched_model)
     )
 
 

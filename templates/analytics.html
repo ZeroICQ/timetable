@@ -87,13 +87,11 @@
                         <div class="card-header py-0">
                           <div class="btn-group">
                             <button class="btn btn-success btn-sm" data-href="{{ url_for('edit', table=selected_table, pk=el[pk_col_name]) }}">Редактировать</button>
-                            {% if el[pk_col_name] in conflicts %}
-                              <div class="conflict-status text-danger">
-                                <a class="btn btn-danger" href="{{ url_for('view_conflicts', pk=el[pk_col_name]) }}" target="_blank">
-                                <i class="fa fa-exclamation-triangle" style="font: 12rem;"></i>
-                                </a>
-                              </div>
-                            {% endif %}
+                            <div class="conflict-status text-danger" style="{% if el[pk_col_name] in conflicts %} {% else %} display: none; {% endif %}">
+                              <a class="btn btn-danger" href="{{ url_for('view_conflicts', pk=el[pk_col_name]) }}" target="_blank">
+                              <i class="fa fa-exclamation-triangle" style="font: 12rem;"></i>
+                              </a>
+                            </div>
                           </div>
                         </div>
                         <div class="card-body p-0">
